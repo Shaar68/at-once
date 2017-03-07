@@ -1,0 +1,53 @@
+<class name="_once" signature="2" title="Socket for working with @Once messages.">
+    This is the @Once Protocol, version 1 draft.
+
+    <include filename="license.xml" />
+
+    <grammar>
+        start       = *greeting update *traffic
+        greeting    = S:CHALLENGE C:AUTHENTICATE ( S:OK / S:NOPE )
+        update      = C:GET-ENDPOINTS S:LIST-ENDPOINTS
+        traffic     = C:REMOTE-WHISPER / C:REMOTE-SHOUT
+    </grammar>
+
+    <!-- Protocol version -->
+    <define name="VERSION" value="1" />
+
+    <!-- Header for all messages -->
+    <header>
+        <field name="version" type="number" size="1" value="1">Version number (1)</field>
+    </header>
+
+    <message name="CHALLENGE" id="1">
+        Authentication challenge to be answered by a peer.
+        <field name="mechanisms" type="strings">One or more available authentication mechanisms.</field>
+        <field name="challenge" type="bytes">Challenge data.</field>
+    </message>
+
+    <message name="AUTHENTICATE" id="2">
+        Authentication response used to answer a challenge sent by a peer or the server.
+        <field name="mechanism" type="string">Chosen authentication mechanism.</field>
+        <field name="response" type="bytes">Challenge response data.</field>
+    </message>
+
+    <message name="GET ENDPOINTS" id="3">
+        Get a list of peers connected to the server.
+    </message>
+
+    <message name="LIST ENDPOINTS" id="4">
+        Send a list of peers connected to the server.
+        <field name="peers" type="strings">List of peers.</field>
+    </message>
+
+    <message name="REMOTE WHISPER" id="5">
+        Relay a whisper message through a bridge node.
+        <field name="peer" type="string">Remote peer.</field>
+        <field name="content" type="string">Message content.</field>
+    </message>
+
+    <message name="REMOTE SHOUT" id="6">
+        Relay a shout through a bridge node.
+        <field name="group" type="string">Remote group.</field>
+        <field name="content" type="string">Message content.</field>
+    </message>
+</class>

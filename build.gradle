@@ -1,0 +1,89 @@
+// -----------------------------------------------------------------------------
+// Plugins to customize gradle
+// -----------------------------------------------------------------------------
+
+apply plugin: "java"
+apply plugin: "maven"
+
+// -----------------------------------------------------------------------------
+// Custom properties (see gradle.properties and settings.gradle for more)
+// -----------------------------------------------------------------------------
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+// -----------------------------------------------------------------------------
+// Custom configuration names (see below for uses)
+// -----------------------------------------------------------------------------
+
+configurations {
+    allJars
+    deployerJars
+    allArchives
+}
+
+// -----------------------------------------------------------------------------
+// Custom tasks
+// -----------------------------------------------------------------------------
+
+task jarAll(type: Jar) {
+    description "Assembles a jar file with dependencies included in the /lib directory of the jar."
+
+    baseName = archivesBaseName + "-all"
+    into("lib") {
+        from {
+            configurations.allJars
+        }
+    }
+    with jar
+}
+
+task uploadAll(type: Upload, dependsOn: jarAll) {
+    description "Uploads the fat jar as an artifact."
+
+    configuration = configurations.allArchives
+    repositories {
+        mavenDeployer {
+            configuration = configurations.deployerJars
+            repository(url: "...") {
+                authentication(userName: "...", password: "...")
+            }
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Custom configurations
+// -----------------------------------------------------------------------------
+
+jar {
+    manifest {
+        attributes "Implementation-Title": artifactId, "Implementation-Version": version
+    }
+}
+
+install {
+    repositories.mavenInstaller {
+        pom.version = version
+        pom.groupId = groupId
+        pom.artifactId = artifactId
+    }
+}
+
+artifacts {
+    allArchives jarAll
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    // Dependencies for runtime
+    compile "org.zeromq:zyre:0.1.1-SNAPSHOT"
+    compile "org.slf4j:slf4j-log4j12:1.7.2"
+
+    // Dependencies for testing
+    testCompile "junit:junit:4.12"
+}

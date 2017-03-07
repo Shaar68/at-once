@@ -1,0 +1,60 @@
+The following ABNF grammar defines the Socket for working with @Once messages.:
+
+        start       = *greeting update *traffic
+        greeting    = S:CHALLENGE C:AUTHENTICATE ( S:OK / S:NOPE )
+        update      = C:GET-ENDPOINTS S:LIST-ENDPOINTS
+        traffic     = C:REMOTE-WHISPER / C:REMOTE-SHOUT
+
+    ;  Authentication challenge to be answered by a peer.                    
+
+    CHALLENGE       = signature %d1 version mechanisms challenge
+    signature       = %xAA %xA2             ; two octets
+    version         = number-1              ; Version number (1)
+    mechanisms      = strings               ; One or more available authentication mechanisms.
+    challenge       = bytes                 ; Challenge data.
+
+    ;  Authentication response used to answer a challenge sent by a peer or  
+    ;  the server.                                                           
+
+    AUTHENTICATE    = signature %d2 version mechanism response
+    version         = number-1              ; Version number (1)
+    mechanism       = string                ; Chosen authentication mechanism.
+    response        = bytes                 ; Challenge response data.
+
+    ;  Get a list of peers connected to the server.                          
+
+    GET-ENDPOINTS   = signature %d3 version
+    version         = number-1              ; Version number (1)
+
+    ;  Send a list of peers connected to the server.                         
+
+    LIST-ENDPOINTS  = signature %d4 version peers
+    version         = number-1              ; Version number (1)
+    peers           = strings               ; List of peers.
+
+    ;  Relay a whisper message through a bridge node.                        
+
+    REMOTE-WHISPER  = signature %d5 version peer content
+    version         = number-1              ; Version number (1)
+    peer            = string                ; Remote peer.
+    content         = string                ; Message content.
+
+    ;  Relay a shout through a bridge node.                                  
+
+    REMOTE-SHOUT    = signature %d6 version group content
+    version         = number-1              ; Version number (1)
+    group           = string                ; Remote group.
+    content         = string                ; Message content.
+
+    ; A list of string values
+    strings         = strings-count *strings-value
+    strings-count   = number-4
+    strings-value   = longstr
+
+    ; Strings are always length + text contents
+    string          = number-1 *VCHAR
+    longstr         = number-4 *VCHAR
+
+    ; Numbers are unsigned integers in network byte order
+    number-1        = 1OCTET
+    number-4        = 4OCTET

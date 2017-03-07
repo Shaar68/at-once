@@ -1,0 +1,2 @@
+cp ../../jyre/model/*.gsl .
+gsl -q -script:zmq_socket -package:org/_once/protocol -author:$USER _once.xml

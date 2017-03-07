@@ -1,0 +1,1023 @@
+.#  codec_java.gsl
+.#
+.#  Generates a codec for a protocol specification
+.#
+.include "library.gsl"
+.include "library_bnf.gsl"
+.resolve_includes()
+.expand_headers()
+.generate_bnf()
+.set_defaults()
+.global.ClassName = java_class_name(class.name)
+.global.PackageName = java_package_name(switches.package)
+.echo "Generating src/main/java/$(switches.package)/$(ClassName)Socket.java..."
+.directory.create("../src/main/java/$(switches.package)")
+.output "../src/main/java/$(switches.package)/$(ClassName)Socket.java"
+/* ============================================================================
+ * $(ClassName)Socket.java
+ * 
+ * Generated codec class for $(ClassName)Socket
+ * ----------------------------------------------------------------------------
+ * $(string.trim (class->license.):block                                      )
+ * ============================================================================
+ */
+package $(PackageName);
+
+import java.util.*;
+import java.io.Closeable;
+import java.nio.ByteBuffer;
+
+import org.zeromq.api.*;
+import org.zeromq.api.Message.Frame;
+import org.zeromq.api.Message.FrameBuilder;
+import org.zeromq.ZMQ;
+
+/**
+ * $(ClassName)Socket class.
+ * 
+ * The specification for this class is as follows:
+ * <pre class="text">
+.for message
+ *  $(NAME) - $(string.trim(.?''):left)
+.    for field
+.        if type = "number"
+.            size ?= 8
+ *    $(java_var_name(name))       $(type) $(size)
+.            if size = 1
+.                field.ctype = "int"
+.            elsif size = 2
+.                field.ctype = "int"
+.            elsif size = 4
+.                field.ctype = "long"
+.            elsif size = 8
+.                field.ctype = "long"
+.            else
+.                echo "E: bad size $(size) for $(java_var_name(name))"
+.            endif
+.        elsif type = "octets"
+ *    $(java_var_name(name))       $(type) [$(size)]
+.        elsif type = "bytes"
+ *    $(java_var_name(name))       $(type) []
+.        else
+ *    $(java_var_name(name))       $(type)
+.        endif
+.        field.name = "$(field.name:c)"
+.        for class.field as cfield where cfield.name = field.name
+.            if cfield.type <> field.type
+.                echo "E: field '$(java_var_name(name))' must have same type everywhere"
+.            endif
+.        else
+.            copy field to class
+.        endfor
+.    endfor
+.endfor
+ * </pre>
+ * 
+ * @author $(switches.author)
+ */
+public class $(ClassName)Socket extends $(ClassName)Codec implements Closeable {
+    //  Structure of our class
+    private Socket socket;        //  Internal socket handle
+    private Frame address;        //  Address of peer if any
+
+    /**
+     * Create a new $(ClassName)Socket.
+     * 
+     * @param socket The internal socket
+     */
+    public $(ClassName)Socket(Socket socket) {
+        assert socket != null;
+        this.socket = socket;
+    }
+
+    /**
+     * Get the message address.
+     * 
+     * @return The message address frame
+     */
+    public Frame getAddress() {
+        return address;
+    }
+
+    /**
+     * Set the message address.
+     * 
+     * @param address The new message address
+     */
+    public void setAddress(Frame address) {
+        this.address = address;
+    }
+
+    /**
+     * Get the internal socket.
+     *
+     * @return The internal socket
+     */
+    public Socket getSocket() {
+        return socket;
+    }
+
+    /**
+     * Destroy the $(ClassName)Socket.
+     */
+    @Override
+    public void close() {
+        socket.close();
+    }
+
+    /**
+     * Receive a message on the socket.
+     *
+     * @return The MessageType of the received message
+     */
+    public MessageType receive() {
+        //  Read valid message frame from socket; we loop over any
+        //  garbage data we might receive from badly-connected peers
+        MessageType type;
+        Message frames;
+        do {
+            frames = socket.receiveMessage();
+
+            //  If we're reading from a ROUTER socket, get address
+            if (socket.getZMQSocket().getType() == ZMQ.ROUTER) {
+                this.address = frames.popFrame();
+            }
+
+            //  Get and check protocol signature
+            type = deserialize(frames);
+        } while (type == null);          //  Protocol assertion, drop message if malformed or invalid
+
+        return type;
+    }
+.for message
+
+    /**
+     * Send the $(message.NAME) to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public boolean send($(java_class_name(name))Message message) {
+        Message frames = serialize(message);
+
+        //  If we're sending to a ROUTER, we add the address first
+        if (socket.getZMQSocket().getType() == ZMQ.ROUTER) {
+            assert address != null;
+            frames.pushFrame(address);
+        }
+
+        return socket.send(frames);
+    }
+.endfor
+}
+
+.echo "Generating src/main/java/$(switches.package)/$(ClassName)Codec.java..."
+.directory.create("../src/main/java/$(switches.package)")
+.output "../src/main/java/$(switches.package)/$(ClassName)Codec.java"
+/* ============================================================================
+ * $(ClassName)Codec.java
+ *
+ * Generated codec class for $(ClassName)Codec
+ * ----------------------------------------------------------------------------
+ * $(string.trim (class->license.):block                                      )
+ * ============================================================================
+ */
+package $(PackageName);
+
+import java.util.*;
+import java.io.Closeable;
+import java.nio.ByteBuffer;
+
+import org.zeromq.api.*;
+import org.zeromq.api.Message.Frame;
+import org.zeromq.api.Message.FrameBuilder;
+import org.zeromq.ZMQ;
+
+/**
+ * $(ClassName)Codec class.
+ *
+ * The specification for this class is as follows:
+ * <pre class="text">
+.for message
+ *  $(NAME) - $(string.trim(.?''):left)
+.    for field
+.        if type = "number"
+.            size ?= 8
+ *    $(java_var_name(name))       $(type) $(size)
+.            if size = 1
+.                field.ctype = "int"
+.            elsif size = 2
+.                field.ctype = "int"
+.            elsif size = 4
+.                field.ctype = "long"
+.            elsif size = 8
+.                field.ctype = "long"
+.            else
+.                echo "E: bad size $(size) for $(java_var_name(name))"
+.            endif
+.        elsif type = "octets"
+ *    $(java_var_name(name))       $(type) [$(size)]
+.        elsif type = "bytes"
+ *    $(java_var_name(name))       $(type) []
+.        else
+ *    $(java_var_name(name))       $(type)
+.        endif
+.        field.name = "$(field.name:c)"
+.        for class.field as cfield where cfield.name = field.name
+.            if cfield.type <> field.type
+.                echo "E: field '$(java_var_name(name))' must have same type everywhere"
+.            endif
+.        else
+.            copy field to class
+.        endfor
+.    endfor
+.endfor
+ * </pre>
+ *
+ * @author $(switches.author)
+ */
+public class $(ClassName)Codec {
+    //  Protocol constants
+.for define
+    public static final int $(DEFINE.NAME:C)  = $(value);
+.endfor
+
+    //  Enumeration of message types
+    public enum MessageType {
+.for message
+.  if last()
+        $(MESSAGE.NAME)
+.  else
+        $(MESSAGE.NAME),
+.  endif
+.endfor
+    }
+.for class.field where type = "octets"
+    public static final int $(FIELD.NAME)_SIZE      = $(size);
+.endfor
+
+.for class.message
+    protected $(java_class_name(message.name))Message $(java_var_name(message.name));
+.endfor
+
+    /**
+     * Deserialize a message.
+     *
+     * @return The MessageType of the deserialized message, or null
+     */
+    public MessageType deserialize(Message frames) {
+        MessageType type = null;
+        try {
+            //  Read and parse command in frame
+            Frame needle = frames.popFrame();
+
+            //  Get and check protocol signature
+            int signature = (0xffff) & needle.getShort();
+            if (signature != (0xaaa0 | $(class.signature))) {
+                return null;         //  Invalid signature
+            }
+
+            //  Get message id, which is first byte in frame
+            int id = (0xff) & needle.getByte();
+            type = MessageType.values()[id-1];
+            switch (type) {
+.for class.message
+                case $(NAME): {
+                    $(java_class_name(message.name))Message message = this.$(java_var_name(message.name)) = new $(java_class_name(message.name))Message();
+.    for field
+.        if type = "number"
+.            if size = 1
+                    message.$(java_var_name(name)) = (0xff) & needle.getByte();
+.            elsif size = 2
+                    message.$(java_var_name(name)) = (0xffff) & needle.getShort();
+.            elsif size = 4
+                    message.$(java_var_name(name)) = needle.getInt();
+.            elsif size = 8
+                    message.$(java_var_name(name)) = needle.getLong();
+.            endif
+.                if defined(field.value)
+                    if (message.$(java_var_name(name)) != $(field.value:)) {
+                        throw new IllegalArgumentException();
+                    }
+.                endif
+.        elsif type = "octets"
+                    message.$(java_var_name(name)) = needle.getBytes();
+                    assert message.$(java_var_name(name)).length == $(size);
+.        elsif type = "bytes"
+                    message.$(java_var_name(name)) = needle.getBytes();
+.            if defined(field.value)
+                    if (message.$(java_var_name(name)) != $(field.value:)) {
+                        throw new IllegalArgumentException();
+                    }
+.            endif
+.        elsif type = "string"
+                    message.$(java_var_name(name)) = needle.getChars();
+.            if defined(field.value)
+                    if (!message.$(java_var_name(name)).equals( "$(field.value:)")) {
+                        throw new IllegalArgumentException();
+                    }
+.            endif
+.        elsif type = "strings"
+                    message.$(java_var_name(name)) = needle.getClobs();
+.        elsif type = "hash"
+                    message.$(java_var_name(name)) = needle.getMap();
+.        elsif type = "frame"
+                    //  Get next frame, leave current untouched
+                    if (!frames.isEmpty()) {
+                        message.$(java_var_name(name)) = frames.popFrame();
+                    } else {
+                        throw new IllegalArgumentException("Invalid message: missing frame: $(name)");
+                    }
+.        elsif type = "msg"
+                    //  Get remaining frames, leave current untouched
+                    if (!frames.isEmpty()) {
+                        while (!frames.isEmpty()) {
+                            message.$(java_var_name(name)).addFrame(frames.popFrame());
+                        }
+                    } else {
+                        throw new IllegalArgumentException("Invalid message: missing frame: $(name)");
+                    }
+.        endif
+.    endfor
+                    break;
+                }
+.endfor
+                default:
+                    throw new IllegalArgumentException("Invalid message: unrecognized type: " + type);
+            }
+
+            return type;
+        } catch (Exception ex) {
+            //  Error returns
+            System.err.printf("E: Malformed message: %s\\n", type);
+            ex.printStackTrace();
+            return null;
+        }
+    }
+.for message
+
+    /**
+     * Get a $(message.NAME) message from the socket.
+     *
+     * @return The $(java_class_name(name))Message last received on this socket
+     */
+    public $(java_class_name(name))Message get$(java_class_name(name))() {
+        return $(java_var_name(message.name));
+    }
+.endfor
+.for message
+
+    /**
+     * Send the $(message.NAME) to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public Message serialize($(java_class_name(name))Message message) {
+        //  Now serialize message into the frame
+        FrameBuilder builder = new FrameBuilder();
+        builder.putShort((short) (0xaaa0 | $(class.signature)));
+        builder.putByte((byte) $(id));   //  Message ID
+
+.    for field
+.        if type = "number"
+.            if defined(field.value)
+.                if size = 1
+        builder.putByte((byte) $(field.value:));
+.                elsif size = 2
+        builder.putShort((short) $(field.value:));
+.                elsif size = 4
+        builder.putInt($(field.value:));
+.                elsif size = 8
+        builder.putLong($(field.value:));
+.                endif
+.            else
+.                if size = 1
+        builder.putByte((byte) (int) message.$(java_var_name(name)));
+.                elsif size = 2
+        builder.putShort((short) (int) message.$(java_var_name(name)));
+.                elsif size = 4
+        builder.putInt(message.$(java_var_name(name)));
+.                elsif size = 8
+        builder.putLong(message.$(java_var_name(name)));
+.                endif
+.            endif
+.        elsif type = "octets"
+        builder.putBytes(message.$(java_var_name(name)), 0, $(size));
+.        elsif type = "bytes"
+        builder.putBytes(message.$(java_var_name(name)));
+.        elsif type = "string"
+.            if defined(field.value)
+        builder.putString("$(field.value:)");
+.            else
+        if (message.$(java_var_name(name)) != null) {
+            builder.putString(message.$(java_var_name(name)));
+        } else {
+            builder.putString("");        //  Empty string
+        }
+.            endif
+.        elsif type = "strings"
+        if (message.$(java_var_name(name)) != null) {
+            builder.putClobs(message.$(java_var_name(name)));
+        } else {
+            builder.putInt(0);   //  Empty string array
+        }
+.        elsif type = "hash"
+        if (message.$(java_var_name(name)) != null) {
+            builder.putMap(message.$(java_var_name(name)));
+        } else {
+            builder.putInt(0);   //  Empty hash
+        }
+.        endif
+.    endfor
+
+        //  Create multi-frame message
+        Message frames = new Message();
+
+        //  Now add the data frame
+        frames.addFrame(builder.build());
+.    for field where type = "frame"
+.        if first()
+
+        //  Now add any frame fields, in order
+.        endif
+        frames.addFrame(message.$(field.name));
+.    endfor
+.    for field where type = "msg"
+        //  Now add message field
+        frames.addFrames(message.$(field.name).getFrames());
+.    endfor
+
+        return frames;
+    }
+.endfor
+}
+
+.for message
+.global.MessageName = java_class_name(message.name)
+.echo "Generating src/main/java/$(switches.package)/$(MessageName)Message.java..."
+.directory.create("../src/main/java/$(switches.package)")
+.output "../src/main/java/$(switches.package)/$(MessageName)Message.java"
+/* ============================================================================
+ * $(MessageName)Message.java
+ * 
+ * Generated codec class for $(MessageName)Message
+ * ----------------------------------------------------------------------------
+ * $(string.trim (class->license.):block                                      )
+ * ============================================================================
+ */
+package $(PackageName);
+
+import java.util.*;
+
+import org.zeromq.api.*;
+import org.zeromq.api.Message.Frame;
+
+/**
+ * $(MessageName)Message class.
+ */
+public class $(MessageName)Message {
+    public static final $(ClassName)Socket.MessageType MESSAGE_TYPE = $(ClassName)Socket.MessageType.$(MESSAGE.NAME);
+
+.for field
+.    if type = "number"
+.        if size = 1
+    protected Integer $(java_var_name(name));
+.        elsif size = 2
+    protected Integer $(java_var_name(name));
+.        elsif size = 4
+    protected Integer $(java_var_name(name));
+.        elsif size = 8
+    protected Long $(java_var_name(name));
+.        endif
+.    elsif type = "octets"
+    protected byte[] $(java_var_name(name)) = new byte[$(size)];
+.    elsif type = "bytes"
+    protected byte[] $(java_var_name(name)) = new byte[0];
+.    elsif type = "string"
+    protected String $(java_var_name(name));
+.    elsif type = "strings"
+    protected List<String> $(java_var_name(name));
+.    elsif type = "hash"
+    protected Map<String, String> $(java_var_name(name));
+.    elsif type = "frame"
+    protected Frame $(java_var_name(name)) = Message.EMPTY_FRAME;
+.    elsif type = "msg"
+    protected Message $(java_var_name(name)) = new Message();
+.    endif
+.endfor
+.for field where !defined(value)
+.    if type = "number"
+
+    /**
+     * Get the $(java_var_name(name)) field.
+     * 
+     * @return The $(java_var_name(name)) field
+     */
+.        if size = 1
+    public Integer get$(java_class_name(Name))() {
+.        elsif size = 2
+    public Integer get$(java_class_name(Name))() {
+.        elsif size = 4
+    public Integer get$(java_class_name(Name))() {
+.        elsif size = 8
+    public Long get$(java_class_name(Name))() {
+.        endif
+        return $(java_var_name(name));
+    }
+
+    /**
+     * Set the $(java_var_name(name)) field.
+     * 
+     * @param $(java_var_name(name)) The $(java_var_name(name)) field
+     */
+.        if size = 1
+    public void set$(java_class_name(Name))(Integer $(java_var_name(name))) {
+.        elsif size = 2
+    public void set$(java_class_name(Name))(Integer $(java_var_name(name))) {
+.        elsif size = 4
+    public void set$(java_class_name(Name))(Integer $(java_var_name(name))) {
+.        elsif size = 8
+    public void set$(java_class_name(Name))(Long $(java_var_name(name))) {
+.        endif
+        this.$(java_var_name(name)) = $(java_var_name(name));
+    }
+
+    /**
+     * Set the $(java_var_name(name)) field.
+     *
+     * @param $(java_var_name(name)) The $(java_var_name(name)) field
+     * @return The $(MessageName)Message, for method chaining
+     */
+.        if size = 1
+    public $(MessageName)Message with$(java_class_name(Name))(Integer $(java_var_name(name))) {
+.        elsif size = 2
+    public $(MessageName)Message with$(java_class_name(Name))(Integer $(java_var_name(name))) {
+.        elsif size = 4
+    public $(MessageName)Message with$(java_class_name(Name))(Integer $(java_var_name(name))) {
+.        elsif size = 8
+    public $(MessageName)Message with$(java_class_name(Name))(Long $(java_var_name(name))) {
+.        endif
+        this.$(java_var_name(name)) = $(java_var_name(name));
+        return this;
+    }
+.    elsif type = "octets"
+
+    /**
+     * Get the $(java_var_name(name)) field.
+     * 
+     * @return The $(java_var_name(name)) field
+     */
+    public byte[] get$(java_class_name(Name))() {
+        return $(java_var_name(name));
+    }
+
+    /**
+     * Set the $(java_var_name(name)) field.
+     * 
+     * @param $(java_var_name(name)) The $(java_var_name(name)) field
+     */
+    public void set$(java_class_name(Name))(byte[] $(java_var_name(name))) {
+        System.arraycopy($(java_var_name(name)), 0, this.$(java_var_name(name)), 0, $(size));
+    }
+
+    /**
+     * Set the $(java_var_name(name)) field.
+     *
+     * @param $(java_var_name(name)) The $(java_var_name(name)) field
+     * @return The $(MessageName)Message, for method chaining
+     */
+    public $(MessageName)Message with$(java_class_name(Name))(byte[] $(java_var_name(name))) {
+        System.arraycopy($(java_var_name(name)), 0, this.$(java_var_name(name)), 0, $(size));
+        return this;
+    }
+.    elsif type = "bytes"
+
+    /**
+     * Get the $(java_var_name(name)) field.
+     *
+     * @return The $(java_var_name(name)) field
+     */
+    public byte[] get$(java_class_name(Name))() {
+        return $(java_var_name(name));
+    }
+
+    /**
+     * Set the $(java_var_name(name)) field.
+     *
+     * @param $(java_var_name(name)) The $(java_var_name(name)) field
+     */
+    public void set$(java_class_name(Name))(byte[] $(java_var_name(name))) {
+        this.$(java_var_name(name)) = new byte[$(java_var_name(name)).length];
+        System.arraycopy($(java_var_name(name)), 0, this.$(java_var_name(name)), 0, $(java_var_name(name)).length);
+    }
+
+    /**
+     * Set the $(java_var_name(name)) field.
+     *
+     * @param $(java_var_name(name)) The $(java_var_name(name)) field
+     * @return The $(MessageName)Message, for method chaining
+     */
+    public $(MessageName)Message with$(java_class_name(Name))(byte[] $(java_var_name(name))) {
+        this.$(java_var_name(name)) = new byte[$(java_var_name(name)).length];
+        System.arraycopy($(java_var_name(name)), 0, this.$(java_var_name(name)), 0, $(java_var_name(name)).length);
+        return this;
+    }
+.    elsif type = "string"
+
+    /**
+     * Get the $(java_var_name(name)) field.
+     * 
+     * @return The $(java_var_name(name)) field
+     */
+    public String get$(java_class_name(Name))() {
+        return $(java_var_name(name));
+    }
+
+    /**
+     * Set the $(java_var_name(name)) field.
+     * 
+     * @param $(java_var_name(name)) The $(java_var_name(name)) field
+     */
+    public void set$(java_class_name(Name))(String $(java_var_name(name))) {
+        this.$(java_var_name(name)) = $(java_var_name(name));
+    }
+
+    /**
+     * Set the $(java_var_name(name)) field.
+     *
+     * @param $(java_var_name(name)) The $(java_var_name(name)) field
+     * @return The $(MessageName)Message, for method chaining
+     */
+    public $(MessageName)Message with$(java_class_name(Name))(String $(java_var_name(name))) {
+        this.$(java_var_name(name)) = $(java_var_name(name));
+        return this;
+    }
+.    elsif type = "strings"
+
+    /**
+     * Get the list of $(java_var_name(name)) strings.
+     * 
+     * @return The $(java_var_name(name)) strings
+     */
+    public List<String> get$(java_class_name(Name))() {
+        if ($(java_var_name(name)) == null) {
+            $(java_var_name(name)) = new ArrayList<>();
+        }
+        return $(java_var_name(name));
+    }
+
+    /**
+     * Append a value to the $(java_var_name(name)) field.
+     *
+     * @param value The value
+     */
+    public void add$(stem_s(java_class_name(Name)))(String value) {
+        get$(java_class_name(Name))().add(value);
+    }
+
+    /**
+     * Append a value to the $(java_var_name(name)) field.
+     *
+     * @param value The value
+     * @return The $(MessageName)Message, for method chaining
+     */
+    public $(MessageName)Message with$(stem_s(java_class_name(Name)))(String value) {
+        get$(java_class_name(Name))().add(value);
+        return this;
+    }
+
+    /**
+     * Set the list of $(java_var_name(name)) strings.
+     * 
+     * @param $(java_var_name(name)) The $(java_var_name(name)) collection
+     */
+    public void set$(java_class_name(Name))(List<String> $(java_var_name(name))) {
+        this.$(java_var_name(name)) = $(java_var_name(name));
+    }
+
+    /**
+     * Set the list of $(java_var_name(name)) strings.
+     *
+     * @param $(java_var_name(name)) The $(java_var_name(name)) collection
+     * @return The $(MessageName)Message, for method chaining
+     */
+    public $(MessageName)Message with$(java_class_name(Name))(List<String> $(java_var_name(name))) {
+        this.$(java_var_name(name)) = $(java_var_name(name));
+        return this;
+    }
+.    elsif type = "hash"
+
+    /**
+     * Get the the $(java_var_name(name)) hash.
+     * 
+     * @return The $(java_var_name(name)) hash
+     */
+    public Map<String, String> get$(java_class_name(Name))() {
+        if ($(java_var_name(name)) == null) {
+            $(java_var_name(name)) = new HashMap<>();
+        }
+        return $(java_var_name(name));
+    }
+
+    /**
+     * Get a value in the $(java_var_name(name)) hash as a string.
+     * 
+     * @param key The hash key
+     * @param defaultValue The default value if the key does not exist
+     * @return The hash value, or the default value if the key does not exist
+     */
+    public String get$(stem_s(java_class_name(Name)))(String key, String defaultValue) {
+        String value = defaultValue;
+        if ($(java_var_name(name)) != null && $(java_var_name(name)).containsKey(key)) {
+            value = $(java_var_name(name)).get(key);
+        }
+        return value;
+    }
+
+    /**
+     * Get a value in the $(java_var_name(name)) hash as a long.
+     * 
+     * @param key The hash key
+     * @param defaultValue The default value if the key does not exist
+     * @return The hash value, or the default value if the key does not exist
+     */
+    public long get$(stem_s(java_class_name(Name)))(String key, long defaultValue) {
+        long value = defaultValue;
+        if ($(java_var_name(name)) != null && $(java_var_name(name)).containsKey(key)) {
+            value = Long.parseLong($(java_var_name(name)).get(key));
+        }
+        return value;
+    }
+
+    /**
+     * Get a value in the $(java_var_name(name)) hash as a long.
+     *
+     * @param key The hash key
+     * @param defaultValue The default value if the key does not exist
+     * @return The hash value, or the default value if the key does not exist
+     */
+    public int get$(stem_s(java_class_name(Name)))(String key, int defaultValue) {
+        int value = defaultValue;
+        if ($(java_var_name(name)) != null && $(java_var_name(name)).containsKey(key)) {
+            value = Integer.parseInt($(java_var_name(name)).get(key));
+        }
+        return value;
+    }
+
+    /**
+     * Set a value in the $(java_var_name(name)) hash.
+     *
+     * @param key The hash key
+     * @param value The value
+     */
+    public void put$(stem_s(java_class_name(Name)))(String key, String value) {
+        get$(java_class_name(Name))().put(key, value);
+    }
+
+    /**
+     * Set a value in the $(java_var_name(name)) hash.
+     *
+     * @param key The hash key
+     * @param value The value
+     * @return The $(MessageName)Message, for method chaining
+     */
+    public $(MessageName)Message with$(stem_s(java_class_name(Name)))(String key, String value) {
+        get$(java_class_name(Name))().put(key, value);
+        return this;
+    }
+
+    /**
+     * Set a value in the $(java_var_name(name)) hash.
+     * 
+     * @param key The hash key
+     * @param value The value
+     */
+    public void put$(stem_s(java_class_name(Name)))(String key, int value) {
+        get$(java_class_name(Name))().put(key, String.valueOf(value));
+    }
+
+    /**
+     * Set a value in the $(java_var_name(name)) hash.
+     *
+     * @param key The hash key
+     * @param value The value
+     * @return The $(MessageName)Message, for method chaining
+     */
+    public $(MessageName)Message with$(stem_s(java_class_name(Name)))(String key, int value) {
+        get$(java_class_name(Name))().put(key, String.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Set a value in the $(java_var_name(name)) hash.
+     * 
+     * @param key The hash key
+     * @param value The value
+     */
+    public void put$(stem_s(java_class_name(Name)))(String key, long value) {
+        get$(java_class_name(Name))().put(key, String.valueOf(value));
+    }
+
+    /**
+     * Set a value in the $(java_var_name(name)) hash.
+     *
+     * @param key The hash key
+     * @param value The value
+     * @return The $(MessageName)Message, for method chaining
+     */
+    public $(MessageName)Message with$(stem_s(java_class_name(Name)))(String key, long value) {
+        get$(java_class_name(Name))().put(key, String.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Set the $(java_var_name(name)) hash.
+     * 
+     * @param $(java_var_name(name)) The new $(java_var_name(name)) hash
+     */
+    public void set$(java_class_name(Name))(Map<String, String> $(java_var_name(name))) {
+        this.$(java_var_name(name)) = $(java_var_name(name));
+    }
+
+    /**
+     * Set the $(java_var_name(name)) hash.
+     *
+     * @param $(java_var_name(name)) The new $(java_var_name(name)) hash
+     * @return The $(MessageName)Message, for method chaining
+     */
+    public $(MessageName)Message with$(java_class_name(Name))(Map<String, String> $(java_var_name(name))) {
+        this.$(java_var_name(name)) = $(java_var_name(name));
+        return this;
+    }
+.    elsif type = "frame"
+
+    /**
+     * Get the $(java_var_name(name)) field.
+     * 
+     * @return The $(java_var_name(name)) field
+     */
+    public Frame get$(java_class_name(Name))() {
+        return $(java_var_name(name));
+    }
+
+    /**
+     * Set the $(java_var_name(name)) field, and take ownership of supplied frame.
+     *
+     * @param frame The new $(java_var_name(name)) frame
+     */
+    public void set$(java_class_name(Name))(Frame frame) {
+        this.$(java_var_name(name)) = frame;
+    }
+
+    /**
+     * Set the $(java_var_name(name)) field, and take ownership of supplied frame.
+     *
+     * @param frame The new $(java_var_name(name)) frame
+     * @return The $(MessageName)Message, for method chaining
+     */
+    public $(MessageName)Message with$(java_class_name(Name))(Frame frame) {
+        this.$(java_var_name(name)) = frame;
+        return this;
+    }
+.    elsif type = "msg"
+
+    /**
+     * Get the $(java_var_name(name)) field.
+     *
+     * @return The $(java_var_name(name)) field
+     */
+    public Message get$(java_class_name(Name))() {
+        return $(java_var_name(name));
+    }
+
+    /**
+     * Set the $(java_var_name(name)) field, and take ownership of supplied message.
+     *
+     * @param message The new $(java_var_name(name)) message
+     */
+    public void set$(java_class_name(Name))(Message message) {
+        this.$(java_var_name(name)) = message;
+    }
+
+    /**
+     * Set the $(java_var_name(name)) field, and take ownership of supplied message.
+     *
+     * @param message The new $(java_var_name(name)) message
+     * @return The $(MessageName)Message, for method chaining
+     */
+    public $(MessageName)Message with$(java_class_name(Name))(Message message) {
+        this.$(java_var_name(name)) = message;
+        return this;
+    }
+.    endif
+.endfor
+}
+.endfor
+
+.echo "Generating src/test/java/$(switches.package)/Test$(ClassName).java..."
+.directory.create("../src/test/java/$(switches.package)")
+.output "../src/test/java/$(switches.package)/$(ClassName)SocketTest.java"
+package $(PackageName);
+
+import static org.junit.Assert.*;
+
+import org.junit.*;
+import org.zeromq.api.*;
+import org.zeromq.api.Message.Frame;
+import org.zeromq.jzmq.*;
+
+/**
+ * Test $(ClassName)Socket.
+ */
+public class $(ClassName)SocketTest {
+    private Context context;
+    private Socket dealer;
+    private Socket router;
+    
+    @Before
+    public void setUp() {
+        context = new ManagedContext();
+        dealer = context.buildSocket(SocketType.DEALER)
+            .bind("inproc://selftest");
+        router = context.buildSocket(SocketType.ROUTER)
+            .connect("inproc://selftest");
+    }
+.for class.message
+
+    @Test
+    public void test$(java_class_name(message.name))() {
+        $(ClassName)Socket out = new $(ClassName)Socket(dealer);
+        $(ClassName)Socket in = new $(ClassName)Socket(router);
+        
+        $(java_class_name(message.name))Message message = new $(java_class_name(message.name))Message();
+.    for field where !defined(value)
+.        if type = "number"
+.            if size = 8
+        message.set$(java_class_name(name))(456L);
+.            else
+        message.set$(java_class_name(name))(123);
+.            endif
+.        elsif type = "octets"
+        byte[] $(java_var_name(name))Data = new byte[$(ClassName)Socket.$(FIELD.NAME)_SIZE];
+        for (int i=0; i < $(ClassName)Socket.$(FIELD.NAME)_SIZE; i++)
+            $(java_var_name(name))Data[i] = 123;
+        message.set$(java_class_name(name))($(name)Data);
+.        elsif type = "bytes"
+        byte[] $(java_var_name(name))Data = new byte[2];
+        $(java_var_name(name))Data[0] = (byte) 0x7f;
+        $(java_var_name(name))Data[1] = (byte) 0x7c;
+        message.set$(java_class_name(name))($(name)Data);
+.        elsif type = "string"
+        message.set$(java_class_name(name))("Life is short but Now lasts for ever");
+.        elsif type = "strings"
+        message.add$(stem_s(java_class_name(name)))("Name: Brutus");
+        message.add$(stem_s(java_class_name(name)))("Age: 43");
+.        elsif type = "hash"
+        message.put$(stem_s(java_class_name(name)))("Name", "Brutus");
+        message.put$(stem_s(java_class_name(name)))("Age", 43);
+.        elsif type = "frame"
+        message.set$(java_class_name(name))(new Frame("Captcha Diem"));
+.        elsif type = "msg"
+        message.set$(java_class_name(name))(new new Message("Hello, World"));
+.        endif
+.    endfor
+        
+        assertTrue(out.send(message));
+        assertEquals($(ClassName)Socket.MessageType.$(MESSAGE.NAME), in.receive());
+        message = in.get$(java_class_name(message.name))();
+.    for field where !defined(value)
+.        if type = "number"
+.            if size = 8
+        assertEquals(message.get$(java_class_name(name))(), Long.valueOf(456));
+.            else
+        assertEquals(message.get$(java_class_name(name))(), Integer.valueOf(123));
+.            endif
+.        elsif type = "octets"
+        assertEquals(message.get$(java_class_name(name))()[0], 123);
+        assertEquals(message.$(name)()[$(ClassName)Socket.$(FIELD.NAME)_SIZE - 1], 123);
+.        elsif type = "bytes"
+        assertEquals(message.get$(java_class_name(name))()[0], 0x7f);
+        assertEquals(message.get$(java_class_name(name))()[1], 0x7c);
+.        elsif type = "string"
+        assertEquals(message.get$(java_class_name(name))(), "Life is short but Now lasts for ever");
+.        elsif type = "strings"
+        assertEquals(message.get$(java_class_name(name))().size(), 2);
+        assertEquals(message.get$(java_class_name(name))().get(0), "Name: Brutus");
+        assertEquals(message.get$(java_class_name(name))().get(1), "Age: 43");
+.        elsif type = "hash"
+        assertEquals(message.get$(java_class_name(name))().size(), 2);
+        assertEquals(message.get$(stem_s(java_class_name(name)))("Name", "?"), "Brutus");
+        assertEquals(message.get$(stem_s(java_class_name(name)))("Age", 0), 43);
+.        elsif type = "frame"
+        assertTrue(message.get$(java_class_name(name))().getString().equals("Captcha Diem"));
+.        elsif type = "msg"
+        assertTrue(message.get$(java_class_name(name))().popString().equals("Hello, World"));
+.        endif
+.    endfor
+        
+        out.close();
+        in.close();
+    }
+.endfor
+}
