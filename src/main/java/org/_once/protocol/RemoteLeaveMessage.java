@@ -1,7 +1,7 @@
 /* ============================================================================
- * RemoteShoutMessage.java
+ * RemoteLeaveMessage.java
  * 
- * Generated codec class for RemoteShoutMessage
+ * Generated codec class for RemoteLeaveMessage
  * ----------------------------------------------------------------------------
  * Copyright (c) 2017 InSource Software -- http://www.insource.io          
  * Copyright other contributors as noted in the AUTHORS file.              
@@ -17,10 +17,10 @@
 package org._once.protocol;
 
 /**
- * RemoteShoutMessage class.
+ * RemoteLeaveMessage class.
  */
-public class RemoteShoutMessage {
-    public static final OnceSocket.MessageType MESSAGE_TYPE = OnceSocket.MessageType.REMOTE_SHOUT;
+public class RemoteLeaveMessage {
+    public static final OnceSocket.MessageType MESSAGE_TYPE = OnceSocket.MessageType.REMOTE_LEAVE;
 
     protected Integer version;
     protected String group;
@@ -48,9 +48,9 @@ public class RemoteShoutMessage {
      * Set the group field.
      *
      * @param group The group field
-     * @return The RemoteShoutMessage, for method chaining
+     * @return The RemoteLeaveMessage, for method chaining
      */
-    public RemoteShoutMessage withGroup(String group) {
+    public RemoteLeaveMessage withGroup(String group) {
         this.group = group;
         return this;
     }
@@ -77,9 +77,9 @@ public class RemoteShoutMessage {
      * Set the content field.
      *
      * @param content The content field
-     * @return The RemoteShoutMessage, for method chaining
+     * @return The RemoteLeaveMessage, for method chaining
      */
-    public RemoteShoutMessage withContent(String content) {
+    public RemoteLeaveMessage withContent(String content) {
         this.content = content;
         return this;
     }

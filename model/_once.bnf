@@ -13,7 +13,7 @@ The following ABNF grammar defines the Socket for working with @Once messages.:
     mechanisms      = strings               ; One or more available authentication mechanisms.
     challenge       = bytes                 ; Challenge data.
 
-    ;  Authentication response used to answer a challenge sent by a peer or  
+    ;  Authentication request used to answer a challenge sent by a peer or   
     ;  the server.                                                           
 
     AUTHENTICATE    = signature %d2 version mechanism response
@@ -21,35 +21,83 @@ The following ABNF grammar defines the Socket for working with @Once messages.:
     mechanism       = string                ; Chosen authentication mechanism.
     response        = bytes                 ; Challenge response data.
 
+    ;  Authentication response indicating successful authentication.         
+
+    OK              = signature %d3 version
+    version         = number-1              ; Version number (1)
+
+    ;  Authentication response indicating unsuccessful authentication.       
+
+    NOPE            = signature %d4 version status_code status_text
+    version         = number-1              ; Version number (1)
+    status_code     = number-4              ; Status code.
+    status_text     = string                ; Status text.
+
     ;  Get a list of peers connected to the server.                          
 
-    GET-ENDPOINTS   = signature %d3 version
+    GET-ENDPOINTS   = signature %d5 version
     version         = number-1              ; Version number (1)
 
     ;  Send a list of peers connected to the server.                         
 
-    LIST-ENDPOINTS  = signature %d4 version peers
+    LIST-ENDPOINTS  = signature %d6 version endpoints
     version         = number-1              ; Version number (1)
-    peers           = strings               ; List of peers.
+    endpoints       = strings               ; List of peer endpoints.
+
+    ;  Get a list of peers connected to the peer on the remote network.      
+
+    GET-PEERS       = signature %d7 version
+    version         = number-1              ; Version number (1)
+
+    ;  Send a list of peers connected to the peer on the remote network.     
+
+    LIST-PEERS      = signature %d8 version peers
+    version         = number-1              ; Version number (1)
+    peers           = hash                  ; List of peers.
 
     ;  Relay a whisper message through a bridge node.                        
 
-    REMOTE-WHISPER  = signature %d5 version peer content
+    REMOTE-WHISPER  = signature %d9 version peer content
     version         = number-1              ; Version number (1)
     peer            = string                ; Remote peer.
     content         = string                ; Message content.
 
     ;  Relay a shout through a bridge node.                                  
 
-    REMOTE-SHOUT    = signature %d6 version group content
+    REMOTE-SHOUT    = signature %d10 version group content
     version         = number-1              ; Version number (1)
     group           = string                ; Remote group.
     content         = string                ; Message content.
+
+    ;  Relay a remote enter event through a bridge node.                     
+
+    REMOTE-ENTER    = signature %d11 version peer name
+    version         = number-1              ; Version number (1)
+    peer            = string                ; Remote peer.
+    name            = string                ; Peer name.
+
+    ;  Relay a remote exit event through a bridge node.                      
+
+    REMOTE-EXIT     = signature %d12 version peer name
+    version         = number-1              ; Version number (1)
+    peer            = string                ; Remote peer.
+    name            = string                ; Peer name.
+
+    ;  Message indicating the peer should exit.                              
+
+    STOP            = signature %d13 version
+    version         = number-1              ; Version number (1)
 
     ; A list of string values
     strings         = strings-count *strings-value
     strings-count   = number-4
     strings-value   = longstr
+
+    ; A list of name/value pairs
+    hash            = hash-count *( hash-name hash-value )
+    hash-count      = number-4
+    hash-value      = longstr
+    hash-name       = string
 
     ; Strings are always length + text contents
     string          = number-1 *VCHAR

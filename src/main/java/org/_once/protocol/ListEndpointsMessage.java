@@ -26,57 +26,57 @@ public class ListEndpointsMessage {
     public static final OnceSocket.MessageType MESSAGE_TYPE = OnceSocket.MessageType.LIST_ENDPOINTS;
 
     protected Integer version;
-    protected List<String> peers;
+    protected List<String> endpoints;
 
     /**
-     * Get the list of peers strings.
+     * Get the list of endpoints strings.
      * 
-     * @return The peers strings
+     * @return The endpoints strings
      */
-    public List<String> getPeers() {
-        if (peers == null) {
-            peers = new ArrayList<>();
+    public List<String> getEndpoints() {
+        if (endpoints == null) {
+            endpoints = new ArrayList<>();
         }
-        return peers;
+        return endpoints;
     }
 
     /**
-     * Append a value to the peers field.
+     * Append a value to the endpoints field.
      *
      * @param value The value
      */
-    public void addPeer(String value) {
-        getPeers().add(value);
+    public void addEndpoint(String value) {
+        getEndpoints().add(value);
     }
 
     /**
-     * Append a value to the peers field.
+     * Append a value to the endpoints field.
      *
      * @param value The value
      * @return The ListEndpointsMessage, for method chaining
      */
-    public ListEndpointsMessage withPeer(String value) {
-        getPeers().add(value);
+    public ListEndpointsMessage withEndpoint(String value) {
+        getEndpoints().add(value);
         return this;
     }
 
     /**
-     * Set the list of peers strings.
+     * Set the list of endpoints strings.
      * 
-     * @param peers The peers collection
+     * @param endpoints The endpoints collection
      */
-    public void setPeers(List<String> peers) {
-        this.peers = peers;
+    public void setEndpoints(List<String> endpoints) {
+        this.endpoints = endpoints;
     }
 
     /**
-     * Set the list of peers strings.
+     * Set the list of endpoints strings.
      *
-     * @param peers The peers collection
+     * @param endpoints The endpoints collection
      * @return The ListEndpointsMessage, for method chaining
      */
-    public ListEndpointsMessage withPeers(List<String> peers) {
-        this.peers = peers;
+    public ListEndpointsMessage withEndpoints(List<String> endpoints) {
+        this.endpoints = endpoints;
         return this;
     }
 }

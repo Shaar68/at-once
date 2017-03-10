@@ -1,0 +1,86 @@
+<class name="_once peer remote client" title="_once peer remote client">
+    This is a client implementation of the @Once Protocol.
+    <include filename="license.xml" />
+
+    <state name="start">
+        <event name="ENTER" next="authenticating">
+            <action name="on server connect" />
+        </event>
+    </state>
+
+    <state name="authenticating" inherit="external">
+        <event name="challenge">
+            <action name="on challenge" />
+            <action name="send" message="AUTHENTICATE" />
+        </event>
+
+        <event name="ok" next="connecting">
+            <action name="on ok" />
+            <action name="send" message="GET ENDPOINTS" />
+        </event>
+
+        <event name="nope">
+            <action name="stop" />
+        </event>
+    </state>
+
+    <state name="connecting" inherit="external">
+        <event name="list endpoints" next="ready">
+            <action name="on list endpoints" />
+        </event>
+    </state>
+
+    <state name="ready" inherit="external">
+        <event name="ENTER">
+            <action name="on enter" />
+            <action name="send" message="GET PEERS" />
+        </event>
+
+        <event name="LEAVE">
+            <action name="on leave" />
+        </event>
+
+        <event name="get peers">
+            <action name="on get peers" />
+            <action name="send" message="LIST PEERS" />
+        </event>
+
+        <event name="list peers">
+            <action name="on list peers" />
+        </event>
+
+        <event name="remote enter">
+            <action name="on remote enter" />
+        </event>
+
+        <event name="remote exit">
+            <action name="on remote exit" />
+        </event>
+
+        <event name="remote whisper">
+            <action name="on remote whisper" />
+        </event>
+
+        <event name="remote shout">
+            <action name="on remote shout" />
+        </event>
+
+        <event name="*">
+            <action name="execute" />
+        </event>
+
+        <event name="stop">
+            <action name="stop" />
+        </event>
+    </state>
+
+    <state name="external">
+        <event name="WHISPER">
+            <action name="on whisper" />
+        </event>
+
+        <event name="SHOUT">
+            <action name="on shout" />
+        </event>
+    </state>
+</class>

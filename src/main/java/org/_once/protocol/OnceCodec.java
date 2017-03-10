@@ -29,15 +29,26 @@ import org.zeromq.api.Message.FrameBuilder;
  *    version                      number 1
  *    mechanisms                   strings
  *    challenge                    bytes []
- *  AUTHENTICATE - Authentication response used to answer a challenge sent by a peer or the server.
+ *  AUTHENTICATE - Authentication request used to answer a challenge sent by a peer or the server.
  *    version                      number 1
  *    mechanism                    string
  *    response                     bytes []
+ *  OK - Authentication response indicating successful authentication.
+ *    version                      number 1
+ *  NOPE - Authentication response indicating unsuccessful authentication.
+ *    version                      number 1
+ *    statusCode                   number 4
+ *    statusText                   string
  *  GET_ENDPOINTS - Get a list of peers connected to the server.
  *    version                      number 1
  *  LIST_ENDPOINTS - Send a list of peers connected to the server.
  *    version                      number 1
- *    peers                        strings
+ *    endpoints                    strings
+ *  GET_PEERS - Get a list of peers connected to the peer on the remote network.
+ *    version                      number 1
+ *  LIST_PEERS - Send a list of peers connected to the peer on the remote network.
+ *    version                      number 1
+ *    peers                        hash
  *  REMOTE_WHISPER - Relay a whisper message through a bridge node.
  *    version                      number 1
  *    peer                         string
@@ -46,6 +57,16 @@ import org.zeromq.api.Message.FrameBuilder;
  *    version                      number 1
  *    group                        string
  *    content                      string
+ *  REMOTE_ENTER - Relay a remote enter event through a bridge node.
+ *    version                      number 1
+ *    peer                         string
+ *    name                         string
+ *  REMOTE_EXIT - Relay a remote exit event through a bridge node.
+ *    version                      number 1
+ *    peer                         string
+ *    name                         string
+ *  STOP - Message indicating the peer should exit.
+ *    version                      number 1
  * </pre>
  *
  * @author sriesenberg
@@ -58,18 +79,32 @@ public class OnceCodec {
     public enum MessageType {
         CHALLENGE,
         AUTHENTICATE,
+        OK,
+        NOPE,
         GET_ENDPOINTS,
         LIST_ENDPOINTS,
+        GET_PEERS,
+        LIST_PEERS,
         REMOTE_WHISPER,
-        REMOTE_SHOUT
+        REMOTE_SHOUT,
+        REMOTE_ENTER,
+        REMOTE_EXIT,
+        STOP
     }
 
     protected ChallengeMessage challenge;
     protected AuthenticateMessage authenticate;
+    protected OkMessage ok;
+    protected NopeMessage nope;
     protected GetEndpointsMessage getEndpoints;
     protected ListEndpointsMessage listEndpoints;
+    protected GetPeersMessage getPeers;
+    protected ListPeersMessage listPeers;
     protected RemoteWhisperMessage remoteWhisper;
     protected RemoteShoutMessage remoteShout;
+    protected RemoteEnterMessage remoteEnter;
+    protected RemoteExitMessage remoteExit;
+    protected StopMessage stop;
 
     /**
      * Deserialize a message.
@@ -112,6 +147,24 @@ public class OnceCodec {
                     message.response = needle.getBytes();
                     break;
                 }
+                case OK: {
+                    OkMessage message = this.ok = new OkMessage();
+                    message.version = (0xff) & needle.getByte();
+                    if (message.version != 1) {
+                        throw new IllegalArgumentException();
+                    }
+                    break;
+                }
+                case NOPE: {
+                    NopeMessage message = this.nope = new NopeMessage();
+                    message.version = (0xff) & needle.getByte();
+                    if (message.version != 1) {
+                        throw new IllegalArgumentException();
+                    }
+                    message.statusCode = needle.getInt();
+                    message.statusText = needle.getChars();
+                    break;
+                }
                 case GET_ENDPOINTS: {
                     GetEndpointsMessage message = this.getEndpoints = new GetEndpointsMessage();
                     message.version = (0xff) & needle.getByte();
@@ -126,7 +179,24 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
-                    message.peers = needle.getClobs();
+                    message.endpoints = needle.getClobs();
+                    break;
+                }
+                case GET_PEERS: {
+                    GetPeersMessage message = this.getPeers = new GetPeersMessage();
+                    message.version = (0xff) & needle.getByte();
+                    if (message.version != 1) {
+                        throw new IllegalArgumentException();
+                    }
+                    break;
+                }
+                case LIST_PEERS: {
+                    ListPeersMessage message = this.listPeers = new ListPeersMessage();
+                    message.version = (0xff) & needle.getByte();
+                    if (message.version != 1) {
+                        throw new IllegalArgumentException();
+                    }
+                    message.peers = needle.getMap();
                     break;
                 }
                 case REMOTE_WHISPER: {
@@ -147,6 +217,34 @@ public class OnceCodec {
                     }
                     message.group = needle.getChars();
                     message.content = needle.getChars();
+                    break;
+                }
+                case REMOTE_ENTER: {
+                    RemoteEnterMessage message = this.remoteEnter = new RemoteEnterMessage();
+                    message.version = (0xff) & needle.getByte();
+                    if (message.version != 1) {
+                        throw new IllegalArgumentException();
+                    }
+                    message.peer = needle.getChars();
+                    message.name = needle.getChars();
+                    break;
+                }
+                case REMOTE_EXIT: {
+                    RemoteExitMessage message = this.remoteExit = new RemoteExitMessage();
+                    message.version = (0xff) & needle.getByte();
+                    if (message.version != 1) {
+                        throw new IllegalArgumentException();
+                    }
+                    message.peer = needle.getChars();
+                    message.name = needle.getChars();
+                    break;
+                }
+                case STOP: {
+                    StopMessage message = this.stop = new StopMessage();
+                    message.version = (0xff) & needle.getByte();
+                    if (message.version != 1) {
+                        throw new IllegalArgumentException();
+                    }
                     break;
                 }
                 default:
@@ -181,6 +279,24 @@ public class OnceCodec {
     }
 
     /**
+     * Get a OK message from the socket.
+     *
+     * @return The OkMessage last received on this socket
+     */
+    public OkMessage getOk() {
+        return ok;
+    }
+
+    /**
+     * Get a NOPE message from the socket.
+     *
+     * @return The NopeMessage last received on this socket
+     */
+    public NopeMessage getNope() {
+        return nope;
+    }
+
+    /**
      * Get a GET_ENDPOINTS message from the socket.
      *
      * @return The GetEndpointsMessage last received on this socket
@@ -199,6 +315,24 @@ public class OnceCodec {
     }
 
     /**
+     * Get a GET_PEERS message from the socket.
+     *
+     * @return The GetPeersMessage last received on this socket
+     */
+    public GetPeersMessage getGetPeers() {
+        return getPeers;
+    }
+
+    /**
+     * Get a LIST_PEERS message from the socket.
+     *
+     * @return The ListPeersMessage last received on this socket
+     */
+    public ListPeersMessage getListPeers() {
+        return listPeers;
+    }
+
+    /**
      * Get a REMOTE_WHISPER message from the socket.
      *
      * @return The RemoteWhisperMessage last received on this socket
@@ -214,6 +348,33 @@ public class OnceCodec {
      */
     public RemoteShoutMessage getRemoteShout() {
         return remoteShout;
+    }
+
+    /**
+     * Get a REMOTE_ENTER message from the socket.
+     *
+     * @return The RemoteEnterMessage last received on this socket
+     */
+    public RemoteEnterMessage getRemoteEnter() {
+        return remoteEnter;
+    }
+
+    /**
+     * Get a REMOTE_EXIT message from the socket.
+     *
+     * @return The RemoteExitMessage last received on this socket
+     */
+    public RemoteExitMessage getRemoteExit() {
+        return remoteExit;
+    }
+
+    /**
+     * Get a STOP message from the socket.
+     *
+     * @return The StopMessage last received on this socket
+     */
+    public StopMessage getStop() {
+        return stop;
     }
 
     /**
@@ -275,6 +436,58 @@ public class OnceCodec {
     }
 
     /**
+     * Send the OK to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public Message serialize(OkMessage message) {
+        //  Now serialize message into the frame
+        FrameBuilder builder = new FrameBuilder();
+        builder.putShort((short) (0xaaa0 | 2));
+        builder.putByte((byte) 3);       //  Message ID
+
+        builder.putByte((byte) 1);
+
+        //  Create multi-frame message
+        Message frames = new Message();
+
+        //  Now add the data frame
+        frames.addFrame(builder.build());
+
+        return frames;
+    }
+
+    /**
+     * Send the NOPE to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public Message serialize(NopeMessage message) {
+        //  Now serialize message into the frame
+        FrameBuilder builder = new FrameBuilder();
+        builder.putShort((short) (0xaaa0 | 2));
+        builder.putByte((byte) 4);       //  Message ID
+
+        builder.putByte((byte) 1);
+        builder.putInt(message.statusCode);
+        if (message.statusText != null) {
+            builder.putString(message.statusText);
+        } else {
+            builder.putString("");        //  Empty string
+        }
+
+        //  Create multi-frame message
+        Message frames = new Message();
+
+        //  Now add the data frame
+        frames.addFrame(builder.build());
+
+        return frames;
+    }
+
+    /**
      * Send the GET_ENDPOINTS to the socket in one step.
      *
      * @param message The message to send
@@ -284,7 +497,7 @@ public class OnceCodec {
         //  Now serialize message into the frame
         FrameBuilder builder = new FrameBuilder();
         builder.putShort((short) (0xaaa0 | 2));
-        builder.putByte((byte) 3);       //  Message ID
+        builder.putByte((byte) 5);       //  Message ID
 
         builder.putByte((byte) 1);
 
@@ -307,13 +520,64 @@ public class OnceCodec {
         //  Now serialize message into the frame
         FrameBuilder builder = new FrameBuilder();
         builder.putShort((short) (0xaaa0 | 2));
-        builder.putByte((byte) 4);       //  Message ID
+        builder.putByte((byte) 6);       //  Message ID
+
+        builder.putByte((byte) 1);
+        if (message.endpoints != null) {
+            builder.putClobs(message.endpoints);
+        } else {
+            builder.putInt(0);   //  Empty string array
+        }
+
+        //  Create multi-frame message
+        Message frames = new Message();
+
+        //  Now add the data frame
+        frames.addFrame(builder.build());
+
+        return frames;
+    }
+
+    /**
+     * Send the GET_PEERS to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public Message serialize(GetPeersMessage message) {
+        //  Now serialize message into the frame
+        FrameBuilder builder = new FrameBuilder();
+        builder.putShort((short) (0xaaa0 | 2));
+        builder.putByte((byte) 7);       //  Message ID
+
+        builder.putByte((byte) 1);
+
+        //  Create multi-frame message
+        Message frames = new Message();
+
+        //  Now add the data frame
+        frames.addFrame(builder.build());
+
+        return frames;
+    }
+
+    /**
+     * Send the LIST_PEERS to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public Message serialize(ListPeersMessage message) {
+        //  Now serialize message into the frame
+        FrameBuilder builder = new FrameBuilder();
+        builder.putShort((short) (0xaaa0 | 2));
+        builder.putByte((byte) 8);       //  Message ID
 
         builder.putByte((byte) 1);
         if (message.peers != null) {
-            builder.putClobs(message.peers);
+            builder.putMap(message.peers);
         } else {
-            builder.putInt(0);   //  Empty string array
+            builder.putInt(0);   //  Empty hash
         }
 
         //  Create multi-frame message
@@ -335,7 +599,7 @@ public class OnceCodec {
         //  Now serialize message into the frame
         FrameBuilder builder = new FrameBuilder();
         builder.putShort((short) (0xaaa0 | 2));
-        builder.putByte((byte) 5);       //  Message ID
+        builder.putByte((byte) 9);       //  Message ID
 
         builder.putByte((byte) 1);
         if (message.peer != null) {
@@ -368,7 +632,7 @@ public class OnceCodec {
         //  Now serialize message into the frame
         FrameBuilder builder = new FrameBuilder();
         builder.putShort((short) (0xaaa0 | 2));
-        builder.putByte((byte) 6);       //  Message ID
+        builder.putByte((byte) 10);      //  Message ID
 
         builder.putByte((byte) 1);
         if (message.group != null) {
@@ -381,6 +645,95 @@ public class OnceCodec {
         } else {
             builder.putString("");        //  Empty string
         }
+
+        //  Create multi-frame message
+        Message frames = new Message();
+
+        //  Now add the data frame
+        frames.addFrame(builder.build());
+
+        return frames;
+    }
+
+    /**
+     * Send the REMOTE_ENTER to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public Message serialize(RemoteEnterMessage message) {
+        //  Now serialize message into the frame
+        FrameBuilder builder = new FrameBuilder();
+        builder.putShort((short) (0xaaa0 | 2));
+        builder.putByte((byte) 11);      //  Message ID
+
+        builder.putByte((byte) 1);
+        if (message.peer != null) {
+            builder.putString(message.peer);
+        } else {
+            builder.putString("");        //  Empty string
+        }
+        if (message.name != null) {
+            builder.putString(message.name);
+        } else {
+            builder.putString("");        //  Empty string
+        }
+
+        //  Create multi-frame message
+        Message frames = new Message();
+
+        //  Now add the data frame
+        frames.addFrame(builder.build());
+
+        return frames;
+    }
+
+    /**
+     * Send the REMOTE_EXIT to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public Message serialize(RemoteExitMessage message) {
+        //  Now serialize message into the frame
+        FrameBuilder builder = new FrameBuilder();
+        builder.putShort((short) (0xaaa0 | 2));
+        builder.putByte((byte) 12);      //  Message ID
+
+        builder.putByte((byte) 1);
+        if (message.peer != null) {
+            builder.putString(message.peer);
+        } else {
+            builder.putString("");        //  Empty string
+        }
+        if (message.name != null) {
+            builder.putString(message.name);
+        } else {
+            builder.putString("");        //  Empty string
+        }
+
+        //  Create multi-frame message
+        Message frames = new Message();
+
+        //  Now add the data frame
+        frames.addFrame(builder.build());
+
+        return frames;
+    }
+
+    /**
+     * Send the STOP to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public Message serialize(StopMessage message) {
+        //  Now serialize message into the frame
+        FrameBuilder builder = new FrameBuilder();
+        builder.putShort((short) (0xaaa0 | 2));
+        builder.putByte((byte) 13);      //  Message ID
+
+        builder.putByte((byte) 1);
 
         //  Create multi-frame message
         Message frames = new Message();

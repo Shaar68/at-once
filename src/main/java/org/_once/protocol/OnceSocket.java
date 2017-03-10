@@ -32,15 +32,26 @@ import java.io.Closeable;
  *    version                      number 1
  *    mechanisms                   strings
  *    challenge                    bytes []
- *  AUTHENTICATE - Authentication response used to answer a challenge sent by a peer or the server.
+ *  AUTHENTICATE - Authentication request used to answer a challenge sent by a peer or the server.
  *    version                      number 1
  *    mechanism                    string
  *    response                     bytes []
+ *  OK - Authentication response indicating successful authentication.
+ *    version                      number 1
+ *  NOPE - Authentication response indicating unsuccessful authentication.
+ *    version                      number 1
+ *    statusCode                   number 4
+ *    statusText                   string
  *  GET_ENDPOINTS - Get a list of peers connected to the server.
  *    version                      number 1
  *  LIST_ENDPOINTS - Send a list of peers connected to the server.
  *    version                      number 1
- *    peers                        strings
+ *    endpoints                    strings
+ *  GET_PEERS - Get a list of peers connected to the peer on the remote network.
+ *    version                      number 1
+ *  LIST_PEERS - Send a list of peers connected to the peer on the remote network.
+ *    version                      number 1
+ *    peers                        hash
  *  REMOTE_WHISPER - Relay a whisper message through a bridge node.
  *    version                      number 1
  *    peer                         string
@@ -49,6 +60,16 @@ import java.io.Closeable;
  *    version                      number 1
  *    group                        string
  *    content                      string
+ *  REMOTE_ENTER - Relay a remote enter event through a bridge node.
+ *    version                      number 1
+ *    peer                         string
+ *    name                         string
+ *  REMOTE_EXIT - Relay a remote exit event through a bridge node.
+ *    version                      number 1
+ *    peer                         string
+ *    name                         string
+ *  STOP - Message indicating the peer should exit.
+ *    version                      number 1
  * </pre>
  * 
  * @author sriesenberg
@@ -165,6 +186,42 @@ public class OnceSocket extends OnceCodec implements Closeable {
     }
 
     /**
+     * Send the OK to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public boolean send(OkMessage message) {
+        Message frames = serialize(message);
+
+        //  If we're sending to a ROUTER, we add the address first
+        if (socket.getZMQSocket().getType() == ZMQ.ROUTER) {
+            assert address != null;
+            frames.pushFrame(address);
+        }
+
+        return socket.send(frames);
+    }
+
+    /**
+     * Send the NOPE to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public boolean send(NopeMessage message) {
+        Message frames = serialize(message);
+
+        //  If we're sending to a ROUTER, we add the address first
+        if (socket.getZMQSocket().getType() == ZMQ.ROUTER) {
+            assert address != null;
+            frames.pushFrame(address);
+        }
+
+        return socket.send(frames);
+    }
+
+    /**
      * Send the GET_ENDPOINTS to the socket in one step.
      *
      * @param message The message to send
@@ -201,6 +258,42 @@ public class OnceSocket extends OnceCodec implements Closeable {
     }
 
     /**
+     * Send the GET_PEERS to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public boolean send(GetPeersMessage message) {
+        Message frames = serialize(message);
+
+        //  If we're sending to a ROUTER, we add the address first
+        if (socket.getZMQSocket().getType() == ZMQ.ROUTER) {
+            assert address != null;
+            frames.pushFrame(address);
+        }
+
+        return socket.send(frames);
+    }
+
+    /**
+     * Send the LIST_PEERS to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public boolean send(ListPeersMessage message) {
+        Message frames = serialize(message);
+
+        //  If we're sending to a ROUTER, we add the address first
+        if (socket.getZMQSocket().getType() == ZMQ.ROUTER) {
+            assert address != null;
+            frames.pushFrame(address);
+        }
+
+        return socket.send(frames);
+    }
+
+    /**
      * Send the REMOTE_WHISPER to the socket in one step.
      *
      * @param message The message to send
@@ -225,6 +318,60 @@ public class OnceSocket extends OnceCodec implements Closeable {
      * @return true if the message was sent, false otherwise
      */
     public boolean send(RemoteShoutMessage message) {
+        Message frames = serialize(message);
+
+        //  If we're sending to a ROUTER, we add the address first
+        if (socket.getZMQSocket().getType() == ZMQ.ROUTER) {
+            assert address != null;
+            frames.pushFrame(address);
+        }
+
+        return socket.send(frames);
+    }
+
+    /**
+     * Send the REMOTE_ENTER to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public boolean send(RemoteEnterMessage message) {
+        Message frames = serialize(message);
+
+        //  If we're sending to a ROUTER, we add the address first
+        if (socket.getZMQSocket().getType() == ZMQ.ROUTER) {
+            assert address != null;
+            frames.pushFrame(address);
+        }
+
+        return socket.send(frames);
+    }
+
+    /**
+     * Send the REMOTE_EXIT to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public boolean send(RemoteExitMessage message) {
+        Message frames = serialize(message);
+
+        //  If we're sending to a ROUTER, we add the address first
+        if (socket.getZMQSocket().getType() == ZMQ.ROUTER) {
+            assert address != null;
+            frames.pushFrame(address);
+        }
+
+        return socket.send(frames);
+    }
+
+    /**
+     * Send the STOP to the socket in one step.
+     *
+     * @param message The message to send
+     * @return true if the message was sent, false otherwise
+     */
+    public boolean send(StopMessage message) {
         Message frames = serialize(message);
 
         //  If we're sending to a ROUTER, we add the address first

@@ -25,29 +25,64 @@
     </message>
 
     <message name="AUTHENTICATE" id="2">
-        Authentication response used to answer a challenge sent by a peer or the server.
+        Authentication request used to answer a challenge sent by a peer or the server.
         <field name="mechanism" type="string">Chosen authentication mechanism.</field>
         <field name="response" type="bytes">Challenge response data.</field>
     </message>
 
-    <message name="GET ENDPOINTS" id="3">
+    <message name="OK" id="3">
+        Authentication response indicating successful authentication.
+    </message>
+
+    <message name="NOPE" id="4">
+        Authentication response indicating unsuccessful authentication.
+        <field name="status code" type="number" size="4">Status code.</field>
+        <field name="status text" type="string">Status text.</field>
+    </message>
+
+    <message name="GET ENDPOINTS" id="5">
         Get a list of peers connected to the server.
     </message>
 
-    <message name="LIST ENDPOINTS" id="4">
+    <message name="LIST ENDPOINTS" id="6">
         Send a list of peers connected to the server.
-        <field name="peers" type="strings">List of peers.</field>
+        <field name="endpoints" type="strings">List of peer endpoints.</field>
     </message>
 
-    <message name="REMOTE WHISPER" id="5">
+    <message name="GET PEERS" id="7">
+        Get a list of peers connected to the peer on the remote network.
+    </message>
+
+    <message name="LIST PEERS" id="8">
+        Send a list of peers connected to the peer on the remote network.
+        <field name="peers" type="hash">List of peers.</field>
+    </message>
+
+    <message name="REMOTE WHISPER" id="9">
         Relay a whisper message through a bridge node.
         <field name="peer" type="string">Remote peer.</field>
         <field name="content" type="string">Message content.</field>
     </message>
 
-    <message name="REMOTE SHOUT" id="6">
+    <message name="REMOTE SHOUT" id="10">
         Relay a shout through a bridge node.
         <field name="group" type="string">Remote group.</field>
         <field name="content" type="string">Message content.</field>
+    </message>
+
+    <message name="REMOTE ENTER" id="11">
+        Relay a remote enter event through a bridge node.
+        <field name="peer" type="string">Remote peer.</field>
+        <field name="name" type="string">Peer name.</field>
+    </message>
+
+    <message name="REMOTE EXIT" id="12">
+        Relay a remote exit event through a bridge node.
+        <field name="peer" type="string">Remote peer.</field>
+        <field name="name" type="string">Peer name.</field>
+    </message>
+
+    <message name="STOP" id="13">
+        Message indicating the peer should exit.
     </message>
 </class>

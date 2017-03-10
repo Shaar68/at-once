@@ -1,5 +1,14 @@
 package org._once;
 
+import org._once.actor.OncePeerRemoteClient;
+import org._once.actor.OncePeerRemoteClient.Event;
+import org._once.protocol.GetEndpointsMessage;
+import org._once.protocol.GetPeersMessage;
+import org._once.protocol.ListEndpointsMessage;
+import org._once.protocol.ListPeersMessage;
+import org._once.protocol.OnceCodec;
+import org._once.protocol.RemoteEnterMessage;
+import org._once.protocol.RemoteExitMessage;
 import org.jyre.ZreInterface;
 import org.zeromq.ContextFactory;
 import org.zeromq.api.Context;
@@ -14,13 +23,14 @@ import java.util.List;
 import java.util.Map;
 
 public class _OncePeer {
+    private Context context;
     private ZreInterface localZre;
     private ZreInterface remoteZre;
+    private OnceCodec codec = new OnceCodec();
 
     private String server;
     private Map<String, String> bridgePeers = new HashMap<>();
     private Map<String, List<RemotePeer>> remotePeers = new HashMap<>();
-    private Context context;
 
     public static void main(String[] args) {
         new _OncePeer().run(args[0]);
@@ -45,8 +55,170 @@ public class _OncePeer {
 
         context.buildReactor()
             .withInPollable(localZre.getSocket(), new LocalHandler())
-            .withInPollable(remoteZre.getSocket(), new RemoteHandler())
+            .withInPollable(remoteZre.getSocket(), new OncePeerRemoteClient(new RemoteHandler()))
             .start();
+    }
+
+    private class RemoteHandler implements OncePeerRemoteClient.Handler {
+        private String peer;
+        private String group;
+        private OnceCodec.MessageType messageType;
+
+        @Override
+        public void onWhisper(OncePeerRemoteClient handle) {
+            Message message = handle.getMessage();
+            peer = message.popString();
+            messageType = codec.deserialize(message);
+
+            onMessage(handle);
+        }
+
+        @Override
+        public void onShout(OncePeerRemoteClient handle) {
+            Message message = handle.getMessage();
+            peer = message.popString();
+            group = message.popString();
+
+            onMessage(handle);
+        }
+
+        private void onMessage(OncePeerRemoteClient handle) {
+            switch (messageType) {
+                case CHALLENGE:
+                    handle.triggerEvent(Event.CHALLENGE);
+                    break;
+                case OK:
+                    handle.triggerEvent(Event.OK);
+                    break;
+                case NOPE:
+                    handle.triggerEvent(Event.NOPE);
+                    break;
+                case LIST_ENDPOINTS:
+                    handle.triggerEvent(Event.LIST_ENDPOINTS);
+                    break;
+                case GET_PEERS:
+                    handle.triggerEvent(Event.GET_PEERS);
+                    break;
+                case LIST_PEERS:
+                    handle.triggerEvent(Event.LIST_PEERS);
+                    break;
+                case REMOTE_ENTER:
+                    handle.triggerEvent(Event.REMOTE_ENTER);
+                    break;
+                case REMOTE_EXIT:
+                    handle.triggerEvent(Event.REMOTE_EXIT);
+                    break;
+                case STOP:
+                    handle.triggerEvent(Event.STOP);
+                    break;
+            }
+        }
+
+        @Override
+        public void onServerConnect(OncePeerRemoteClient handle) {
+            Message message = handle.getMessage();
+            server = message.popString();
+        }
+
+        @Override
+        public void onChallenge(OncePeerRemoteClient handle) {
+            // TODO: Handle challenge
+            handle.triggerEvent(Event.OK);
+        }
+
+        @Override
+        public void onOk(OncePeerRemoteClient handle) {
+            GetEndpointsMessage message = new GetEndpointsMessage();
+            remoteZre.whisper(server, codec.serialize(message));
+        }
+
+        @Override
+        public void onListEndpoints(OncePeerRemoteClient handle) {
+            OnceCodec.MessageType messageType = codec.deserialize(handle.getMessage());
+            assert (messageType == OnceCodec.MessageType.LIST_ENDPOINTS);
+
+            ListEndpointsMessage message = codec.getListEndpoints();
+            List<String> endpoints = message.getEndpoints();
+            for (String endpoint : endpoints) {
+                remoteZre.connect(endpoint);
+            }
+
+            System.out.printf("Received list of peers from %s: size=%d\n", remoteZre.getPeerName(peer), endpoints.size());
+        }
+
+        @Override
+        public void onEnter(OncePeerRemoteClient handle) {
+            Message message = handle.getMessage();
+            String peer = message.popString();
+            String endpoint = remoteZre.getPeerEndpoint(peer);
+            bridgePeers.put(peer, endpoint);
+
+            remoteZre.whisper(peer, codec.serialize(new GetPeersMessage()));
+        }
+
+        @Override
+        public void onLeave(OncePeerRemoteClient handle) {
+            Message message = handle.getMessage();
+            String peer = message.popString();
+            bridgePeers.remove(peer);
+            remotePeers.remove(peer);
+        }
+
+        @Override
+        public void onGetPeers(OncePeerRemoteClient handle) {
+            List<String> peers = remoteZre.getPeers();
+            ListPeersMessage message = new ListPeersMessage();
+            for (String peer : peers) {
+                message.withPeer(peer, remoteZre.getPeerName(peer));
+            }
+
+            remoteZre.whisper(peer, codec.serialize(message));
+        }
+
+        @Override
+        public void onListPeers(OncePeerRemoteClient handle) {
+            ListPeersMessage message = codec.getListPeers();
+            Map<String, String> peers = message.getPeers();
+
+            List<RemotePeer> list = new ArrayList<>(peers.size());
+            for (Map.Entry<String, String> entry : peers.entrySet()) {
+                list.add(new RemotePeer(entry.getKey(), entry.getValue()));
+            }
+
+            remotePeers.put(peer, list);
+            System.out.printf("Received list of peers from %s: size=%d\n", remoteZre.getPeerName(peer), peers.size());
+        }
+
+        @Override
+        public void onRemoteEnter(OncePeerRemoteClient handle) {
+            List<RemotePeer> peers = remotePeers.computeIfAbsent(peer, k -> new ArrayList<>());
+            RemoteEnterMessage message = codec.getRemoteEnter();
+            peers.add(new RemotePeer(message.getPeer(), message.getName()));
+        }
+
+        @Override
+        public void onRemoteExit(OncePeerRemoteClient handle) {
+            List<RemotePeer> peers = remotePeers.get(peer);
+            if (peers != null) {
+                RemoteExitMessage message = codec.getRemoteExit();
+                peers.remove(new RemotePeer(message.getPeer(), message.getName()));
+            }
+        }
+
+        @Override
+        public void onRemoteWhisper(OncePeerRemoteClient handle) {
+            // TODO: Implement remote whisper
+        }
+
+        @Override
+        public void onRemoteShout(OncePeerRemoteClient handle) {
+            // TODO: Implement remote shout
+        }
+
+        @Override
+        public void execute(OncePeerRemoteClient handle) {
+            // TODO: Needed?
+        }
     }
 
     private class RemotePeer {
@@ -134,140 +306,6 @@ public class _OncePeer {
             String group = frame.getChars();
             String content = frame.getClob();
             remoteZre.shout(group, new Message(content));
-        }
-
-    }
-
-    private class RemoteHandler extends LoopAdapter {
-        @Override
-        protected void execute(Reactor reactor, Socket socket) {
-            Message message = remoteZre.receive();
-            String command = message.popString();
-            switch (command) {
-                case "ENTER":
-                    onEnter(message);
-                    break;
-                case "LEAVE":
-                    onLeave(message);
-                    break;
-                case "WHISPER":
-                    onWhisper(message);
-                    break;
-                case "SHOUT":
-                    onShout(message);
-                    break;
-            }
-        }
-
-        private void onEnter(Message message) {
-            String peer = message.popString();
-            if (server != null) {
-                String address = remoteZre.getPeerEndpoint(peer);
-                bridgePeers.put(peer, address);
-
-                Message.FrameBuilder frameBuilder = new Message.FrameBuilder();
-                frameBuilder.putString("GET PEERS");
-                remoteZre.whisper(peer, new Message(frameBuilder.build()));
-            }
-        }
-
-        private void onLeave(Message message) {
-            String peer = message.popString();
-            if (server != null) {
-                bridgePeers.remove(peer);
-                remotePeers.remove(peer);
-            }
-        }
-
-        private void onWhisper(Message message) {
-            String peer = message.popString();
-            Message.Frame frame = message.popFrame();
-            String command = frame.getChars();
-            switch (command) {
-                case "ICU":
-                    onIcu(peer);
-                    break;
-                case "LIST ENDPOINTS":
-                    onListEndpoints(peer, frame);
-                    break;
-                case "GET PEERS":
-                    onGetPeers(peer);
-                    break;
-                case "LIST PEERS":
-                    onListPeers(peer, frame);
-                    break;
-            }
-        }
-
-        private void onShout(Message message) {
-            String peer = message.popString();
-            Message.Frame frame = message.popFrame();
-            String command = frame.getChars();
-            switch (command) {
-                case "ENTER":
-                    onRemoteEnter(peer, frame);
-                    break;
-                case "LEAVE":
-                    onRemoteLeave(peer, frame);
-                    break;
-            }
-        }
-
-        private void onRemoteEnter(String sender, Message.Frame frame) {
-            String peer = frame.getChars();
-            String name = frame.getChars();
-            remotePeers.getOrDefault(sender, new ArrayList<>()).add(new RemotePeer(peer, name));
-        }
-
-        private void onRemoteLeave(String sender, Message.Frame frame) {
-            List<RemotePeer> peers = remotePeers.get(sender);
-            String peer = frame.getChars();
-            String name = frame.getChars();
-            if (peers != null) {
-                peers.remove(new RemotePeer(peer, name));
-            }
-        }
-
-        private void onIcu(String peer) {
-            server = peer;
-            System.out.printf("Connected to %s\n", remoteZre.getPeerName(server));
-
-            Message.FrameBuilder frameBuilder = new Message.FrameBuilder();
-            frameBuilder.putString("GET ENDPOINTS");
-            remoteZre.whisper(server, new Message(frameBuilder.build()));
-        }
-
-        private void onListEndpoints(String sender, Message.Frame frame) {
-            Map<String, String> endpoints = frame.getMap();
-            for (String address : bridgePeers.values()) {
-                remoteZre.connect(address);
-            }
-
-            System.out.printf("Received list of peers from %s: size=%d\n", remoteZre.getPeerName(sender), endpoints.size());
-        }
-
-        private void onGetPeers(String replyTo) {
-            List<String> peers = remoteZre.getPeers();
-            Map<String, String> map = new HashMap<>(peers.size(), 1.0f);
-            for (String peer : peers) {
-                map.put(peer, remoteZre.getPeerName(peer));
-            }
-
-            Message.FrameBuilder frameBuilder = new Message.FrameBuilder();
-            frameBuilder.putString("LIST PEERS");
-            frameBuilder.putMap(map);
-            remoteZre.whisper(replyTo, new Message(frameBuilder.build()));
-        }
-
-        private void onListPeers(String peer, Message.Frame frame) {
-            Map<String, String> peers = frame.getMap();
-            List<RemotePeer> list = new ArrayList<>(peers.size());
-            for (Map.Entry<String, String> entry : peers.entrySet()){
-                list.add(new RemotePeer(entry.getKey(), entry.getValue()));
-            }
-
-            remotePeers.put(peer, list);
-            System.out.printf("Received list of peers from %s: size=%d\n", remoteZre.getPeerName(peer), peers.size());
         }
     }
 }
