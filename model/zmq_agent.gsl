@@ -1,0 +1,225 @@
+.template 0
+
+include "library.gsl"
+resolve_includes()
+set_defaults()
+
+#   Set globals
+global.ClassName = java_class_name(class.name)
+global.PackageName = java_package_name(switches.package)
+
+#   Load message structures for this engine
+global.proto = xml.load_file (class.protocol_class + ".xml")
+class.proto = class.protocol_class
+
+#  Collect all events and actions at class level
+for class.state
+    state.comma = last()?? ""? ","
+    for event where name <> "*"
+        event.name = "$(name:c)"
+        #   Mark event as external if it is a protocol message
+        if count (proto.message, message.name = event.name)
+            event.external = 1
+        endif
+        #   Copy event to class if not yet defined there
+        if count (class.event, name = -1.name) = 0
+            copy event to class
+        endif
+    endfor
+    for event
+        for action where count (class.action, name = -1.name) = 0
+            copy action to class
+        endfor
+    endfor
+    for [before]
+        for action where count (class.action, name = -1.name) = 0
+            copy action to class
+        endfor
+    endfor
+    for [after]
+        for action where count (class.action, name = -1.name) = 0
+            copy action to class
+        endfor
+    endfor
+endfor
+
+#   Process super states
+for class.state where defined (inherit)
+    for class.state as superstate where name = inherit
+        for event where count (state.event, name = -1.name) = 0
+            copy event to state
+        endfor
+    else
+        echo "E: superstate $(inherit) isn't defined"
+    endfor
+endfor
+
+#   Remove super states
+for class.state where defined (inherit)
+    for class.state as superstate where name = inherit
+        delete superstate
+    endfor
+endfor
+
+.endtemplate
+.echo "Generating src/main/java/$(switches.package)/$(ClassName)Agent.java..."
+.directory.create("../src/main/java/$(switches.package)")
+.output "../src/main/java/$(switches.package)/$(ClassName)Agent.java"
+/* ============================================================================
+ * $(ClassName)Agent.java
+ *
+ * Generated class for $(ClassName)Agent
+ * ----------------------------------------------------------------------------
+ * $(string.trim (class->license.):block                                      )
+ * ============================================================================
+ */
+package $(PackageName);
+
+import org.zeromq.api.*;
+
+/**
+ * $(ClassName)Agent class.
+ *
+ * @author $(switches.author)
+ */
+public class $(ClassName)Agent extends LoopAdapter {
+    // Application callback handler
+    private Handler handler;
+
+    // Structure of our class
+    private Reactor reactor;
+    private Socket socket;
+    private Message message;
+    private State state = State.START;
+    private Event event;
+    private Event next;
+
+    public $(ClassName)Agent(Handler handler) {
+        this.handler = handler;
+    }
+
+    public Reactor getReactor() {
+        return reactor;
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public Message getMessage() {
+        return message;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public Event getEvent() {
+        return event;
+    }
+
+    public Event getNext() {
+        return next;
+    }
+
+    public void triggerEvent(Event next) {
+        this.next = next;
+    }
+
+    @Override
+    protected void execute(Reactor reactor, Socket socket) {
+        this.reactor = reactor;
+        this.socket = socket;
+
+        message = socket.receiveMessage();
+        next = Event.valueOf(message.popString());
+        while (next != null) {
+            event = next;
+            next = null;
+            execute();
+        }
+    }
+
+    protected void execute() {
+        switch (state) {
+.for class.state
+            case $(NAME:C): {
+                switch (event) {
+.   for event where name <> "*"
+                    case $(NAME:C): {
+.       for action
+.           if name = "send"
+                        // TODO: send $(MESSAGE)
+.           elsif name = "stop"
+                        reactor.cancel(this);
+.           else
+                        handler.$(java_var_name(name))(this);
+.           endif
+.       endfor
+.       if defined (event.next)
+                        state = State.$(NEXT:C);
+.       endif
+                        break;
+                    }
+.   endfor
+.   for event where name = "*"
+                    default: {
+.       for action
+.           if name = "send"
+                        // TODO: send $(MESSAGE)
+.           elsif name = "stop"
+                        reactor.cancel(this);
+.           else
+                        handler.$(java_var_name(name))(this);
+.           endif
+.       endfor
+.       if defined (event.next)
+                        state = State.$(NEXT:C);
+.       endif
+                        break;
+                    }
+.   endfor
+                }
+                break;
+            }
+.endfor
+        }
+    }
+
+    /**
+     * States we can be in.
+     */
+    public enum State {
+.for class.state
+.   state.comma = last()?? ""? ","
+        $(NAME:C)$(comma)
+.endfor
+    }
+
+    /**
+     * Events we can process.
+     */
+    public enum Event {
+.for class.event
+.   event.comma = last()?? ""? ","
+        $(NAME:C)$(comma)
+.endfor
+    }
+
+    /**
+     * Application callback handler interface.
+     */
+    public interface Handler {
+.for class.action where name <> "stop" & name <> "send"
+.   if index() <> 1
+
+.   endif
+        /**
+         * Callback for the "$(name)" action.
+         *
+         * @param agent Handle to the agent instance
+         */
+        void $(java_var_name(name))($(ClassName)Agent agent);
+.endfor
+    }
+}

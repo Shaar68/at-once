@@ -114,7 +114,7 @@ function resolve_includes ()
 endfunction
 
 function java_class_name(name)
-    neatName = "$(Name)"
+    neatName = "$(Name:c)"
     return "$(string.replace(neatName, '_'))"
 endfunction
 
