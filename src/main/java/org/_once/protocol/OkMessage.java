@@ -23,4 +23,64 @@ public class OkMessage {
     public static final OnceSocket.MessageType MESSAGE_TYPE = OnceSocket.MessageType.OK;
 
     protected Integer version;
+    protected String token;
+    protected String secret;
+
+    /**
+     * Get the token field.
+     * 
+     * @return The token field
+     */
+    public String getToken() {
+        return token;
+    }
+
+    /**
+     * Set the token field.
+     * 
+     * @param token The token field
+     */
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    /**
+     * Set the token field.
+     *
+     * @param token The token field
+     * @return The OkMessage, for method chaining
+     */
+    public OkMessage withToken(String token) {
+        this.token = token;
+        return this;
+    }
+
+    /**
+     * Get the secret field.
+     * 
+     * @return The secret field
+     */
+    public String getSecret() {
+        return secret;
+    }
+
+    /**
+     * Set the secret field.
+     * 
+     * @param secret The secret field
+     */
+    public void setSecret(String secret) {
+        this.secret = secret;
+    }
+
+    /**
+     * Set the secret field.
+     *
+     * @param secret The secret field
+     * @return The OkMessage, for method chaining
+     */
+    public OkMessage withSecret(String secret) {
+        this.secret = secret;
+        return this;
+    }
 }

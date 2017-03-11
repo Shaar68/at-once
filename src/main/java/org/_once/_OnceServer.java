@@ -1,132 +1,134 @@
 package org._once;
 
+import org._once.agent.OnceServerAgent;
+import org._once.protocol.ChallengeMessage;
+import org._once.protocol.ListEndpointsMessage;
+import org._once.protocol.NopeMessage;
+import org._once.protocol.OkMessage;
+import org._once.protocol.OnceCodec;
 import org.jyre.ZreInterface;
+import org.zeromq.ContextFactory;
+import org.zeromq.api.Context;
 import org.zeromq.api.Message;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class _OnceServer {
+    private Context context;
     private ZreInterface zre;
+    private OnceCodec codec = new OnceCodec();
 
     public static void main(String[] args) {
         new _OnceServer().run(args[0]);
     }
 
     private void run(String name) {
-        zre = new ZreInterface();
+        context = ContextFactory.createContext(1);
+
+        zre = new ZreInterface(context);
         zre.setName(name);
         zre.setBeaconsEnabled(false);
         zre.setPort(_OnceConstants.ZRE_PING_PORT + 1);
         zre.start();
-        while (true) {
-            Message message = zre.receive();
-            String command = message.popString();
-            switch (command) {
-                case "ENTER":
-                    onEnter(message);
-                    break;
-                case "EXIT":
-                    onExit(message);
-                    break;
-                case "JOIN":
-                    onJoin(message);
-                    break;
-                case "LEAVE":
-                    onLeave(message);
-                    break;
-                case "WHISPER":
-                    onWhisper(message);
-                    break;
-                case "SHOUT":
-                    onShout(message);
-                    break;
-                case "EVASIVE":
-                    onEvasive(message);
-                    break;
-            }
-        }
-    }
 
-    private void onEnter(Message message) {
-        String peer = message.popString();
-        String name = zre.getPeerName(peer);
-        if (name != null) {
-            System.out.printf("%s: %s entered\n", time(), name);
-        }
-
-        Message.FrameBuilder frameBuilder = new Message.FrameBuilder();
-        frameBuilder.putString("ICU");
-        zre.whisper(peer, new Message(frameBuilder.build()));
-    }
-
-    private void onExit(Message message) {
-        message.popString();
-        String name = message.popString();
-        if (name != null) {
-            System.out.printf("%s: %s left\n", time(), name);
-        }
-    }
-
-    private void onJoin(Message message) {
-        String peer = message.popString();
-        String group = message.popString();
-        String name = zre.getPeerName(peer);
-        if (name != null) {
-            System.out.printf("%s: %s joined %s\n", time(), name, group);
-        }
-    }
-
-    private void onLeave(Message message) {
-        String peer = message.popString();
-        String group = message.popString();
-        String name = zre.getPeerName(peer);
-        if (name != null) {
-            System.out.printf("%s: %s left %s\n", time(), name, group);
-        }
-    }
-
-    private void onWhisper(Message message) {
-        String peer = message.popString();
-        Message.Frame frame = message.popFrame();
-        String command = frame.getChars();
-        switch (command) {
-            case "GET ENDPOINTS":
-                onGetEndpoints(peer);
-                break;
-        }
-    }
-
-    private void onGetEndpoints(String replyTo) {
-        List<String> peers = zre.getPeers();
-        Map<String, String> endpoints = new HashMap<>(peers.size(), 1.0f);
-        for (String peer : peers) {
-            String endpoint = zre.getPeerEndpoint(peer);
-            String address = endpoint.substring("tcp://".length(), endpoint.lastIndexOf(":"));
-            endpoints.put(peer, address);
-        }
-
-        Message.FrameBuilder frameBuilder = new Message.FrameBuilder();
-        frameBuilder.putString("LIST ENDPOINTS");
-        frameBuilder.putMap(endpoints);
-        zre.whisper(replyTo, new Message(frameBuilder.build()));
-    }
-
-    private void onShout(Message message) {
-        String peer = message.popString();
-        String group = message.popString();
-        String content = message.popString();
-        System.out.printf("%s: #%-12s @%-20s %s\n", time(), group, zre.getPeerName(peer), content);
-    }
-
-    private void onEvasive(Message message) {
-        // Do nothing.
+        context.buildReactor()
+            .withInPollable(zre.getSocket(), new OnceServerAgent(new ServerHandler()))
+            .start();
     }
 
     private String time() {
         return LocalTime.now().format(DateTimeFormatter.ofPattern("h:mm a")).toLowerCase();
+    }
+
+    private class ServerHandler implements OnceServerAgent.Handler {
+        private String peer;
+
+        @Override
+        public void onEnter(OnceServerAgent agent) {
+            Message message = agent.getMessage();
+            String peer = message.popString();
+            String name = message.popString();
+            if (name != null) {
+                System.out.printf("%s: %s entered\n", time(), name);
+            }
+
+            ChallengeMessage challenge = new ChallengeMessage()
+                .withMechanism("SIMPLE")
+                .withChallenge("SECRET".getBytes());
+            zre.whisper(peer, codec.serialize(challenge));
+        }
+
+        @Override
+        public void onJoin(OnceServerAgent agent) {
+            // Do nothing.
+        }
+
+        @Override
+        public void checkAuthenticationToken(OnceServerAgent agent) {
+            // TODO: Implement security.
+        }
+
+        @Override
+        public void onWhisper(OnceServerAgent agent) {
+            Message message = agent.getMessage();
+            peer = message.popString();
+
+            OnceCodec.MessageType messageType = codec.deserialize(message);
+            switch (messageType) {
+                case AUTHENTICATE:
+                    agent.triggerEvent(OnceServerAgent.Event.AUTHENTICATE);
+                    break;
+                case GET_ENDPOINTS:
+                    agent.triggerEvent(OnceServerAgent.Event.GET_ENDPOINTS);
+                    break;
+            }
+        }
+
+        @Override
+        public void onShout(OnceServerAgent agent) {
+            // Do nothing.
+        }
+
+        @Override
+        public void onLeave(OnceServerAgent agent) {
+            // Do nothing.
+        }
+
+        @Override
+        public void onExit(OnceServerAgent agent) {
+            Message message = agent.getMessage();
+            String peer = message.popString();
+            String name = message.popString();
+            if (name != null) {
+                System.out.printf("%s: %s left\n", time(), name);
+            }
+        }
+
+        @Override
+        public void onAuthenticate(OnceServerAgent agent) {
+            // TODO: Implement security.
+            agent.triggerEvent(OnceServerAgent.Event.AUTHENTICATE_OK);
+            zre.whisper(peer, codec.serialize(new OkMessage()));
+        }
+
+        @Override
+        public void onUnauthorized(OnceServerAgent agent) {
+            zre.whisper(peer, codec.serialize(new NopeMessage()));
+        }
+
+        @Override
+        public void onGetEndpoints(OnceServerAgent agent) {
+            List<String> peers = zre.getPeers();
+            ListEndpointsMessage message = new ListEndpointsMessage();
+            for (String peer : peers) {
+                String endpoint = zre.getPeerEndpoint(peer);
+                String address = endpoint.substring("tcp://".length(), endpoint.lastIndexOf(":"));
+                message.withEndpoint(address);
+            }
+
+            zre.whisper(peer, codec.serialize(message));
+        }
     }
 }

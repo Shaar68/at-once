@@ -23,8 +23,38 @@ public class RemoteExitMessage {
     public static final OnceSocket.MessageType MESSAGE_TYPE = OnceSocket.MessageType.REMOTE_EXIT;
 
     protected Integer version;
+    protected String secret;
     protected String peer;
     protected String name;
+
+    /**
+     * Get the secret field.
+     * 
+     * @return The secret field
+     */
+    public String getSecret() {
+        return secret;
+    }
+
+    /**
+     * Set the secret field.
+     * 
+     * @param secret The secret field
+     */
+    public void setSecret(String secret) {
+        this.secret = secret;
+    }
+
+    /**
+     * Set the secret field.
+     *
+     * @param secret The secret field
+     * @return The RemoteExitMessage, for method chaining
+     */
+    public RemoteExitMessage withSecret(String secret) {
+        this.secret = secret;
+        return this;
+    }
 
     /**
      * Get the peer field.

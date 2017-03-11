@@ -1,0 +1,68 @@
+<class name="_once server" title="_once server" protocol_class="_once">
+    This is a server implementation of the @Once Protocol.
+    <include filename="license.xml" />
+
+    <state name="start">
+        <event name="ENTER" next="responding" trigger="challenge">
+            <action name="on enter" />
+        </event>
+    </state>
+
+    <state name="ready">
+        <event name="ENTER" next="responding" trigger="challenge">
+            <action name="on enter" />
+        </event>
+
+        <event name="JOIN">
+            <action name="on join" />
+        </event>
+
+        <event name="WHISPER" next="responding">
+            <action name="check authentication token" />
+            <action name="on whisper" />
+        </event>
+
+        <event name="SHOUT">
+            <action name="on shout" />
+        </event>
+
+        <event name="LEAVE">
+            <action name="on leave" />
+        </event>
+
+        <event name="EXIT">
+            <action name="on exit" />
+        </event>
+    </state>
+
+    <state name="responding">
+        <event name="challenge" next="ready">
+            <action name="send" message="CHALLENGE" />
+        </event>
+
+        <event name="authenticate" next="authenticating">
+            <action name="on authenticate" />
+        </event>
+
+        <event name="unauthorized" next="ready">
+            <action name="on unauthorized" />
+            <action name="send" message="NOPE" />
+        </event>
+
+        <event name="get endpoints" next="ready">
+            <action name="on get endpoints" />
+            <action name="send" message="LIST ENDPOINTS" />
+        </event>
+    </state>
+
+    <state name="authenticating">
+        <event name="authenticate ok" next="ready">
+            <action name="send" message="OK" />
+        </event>
+
+        <event name="authenticate failed" next="ready">
+            <action name="send" message="NOPE" />
+        </event>
+    </state>
+
+</class>

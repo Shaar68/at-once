@@ -35,38 +35,51 @@ import org.zeromq.api.Message.FrameBuilder;
  *    response                     bytes []
  *  OK - Authentication response indicating successful authentication.
  *    version                      number 1
+ *    token                        string
+ *    secret                       string
  *  NOPE - Authentication response indicating unsuccessful authentication.
  *    version                      number 1
  *    statusCode                   number 4
  *    statusText                   string
  *  GET_ENDPOINTS - Get a list of peers connected to the server.
  *    version                      number 1
+ *    token                        string
  *  LIST_ENDPOINTS - Send a list of peers connected to the server.
  *    version                      number 1
+ *    token                        string
  *    endpoints                    strings
  *  GET_PEERS - Get a list of peers connected to the peer on the remote network.
  *    version                      number 1
+ *    secret                       string
  *  LIST_PEERS - Send a list of peers connected to the peer on the remote network.
  *    version                      number 1
+ *    secret                       string
  *    peers                        hash
  *  REMOTE_WHISPER - Relay a whisper message through a bridge node.
  *    version                      number 1
+ *    secret                       string
+ *    from                         string
  *    peer                         string
  *    content                      string
  *  REMOTE_SHOUT - Relay a shout through a bridge node.
  *    version                      number 1
+ *    secret                       string
+ *    from                         string
  *    group                        string
  *    content                      string
  *  REMOTE_ENTER - Relay a remote enter event through a bridge node.
  *    version                      number 1
+ *    secret                       string
  *    peer                         string
  *    name                         string
  *  REMOTE_EXIT - Relay a remote exit event through a bridge node.
  *    version                      number 1
+ *    secret                       string
  *    peer                         string
  *    name                         string
  *  STOP - Message indicating the peer should exit.
  *    version                      number 1
+ *    token                        string
  * </pre>
  *
  * @author sriesenberg
@@ -153,6 +166,8 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
+                    message.token = needle.getChars();
+                    message.secret = needle.getChars();
                     break;
                 }
                 case NOPE: {
@@ -171,6 +186,7 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
+                    message.token = needle.getChars();
                     break;
                 }
                 case LIST_ENDPOINTS: {
@@ -179,6 +195,7 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
+                    message.token = needle.getChars();
                     message.endpoints = needle.getClobs();
                     break;
                 }
@@ -188,6 +205,7 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
+                    message.secret = needle.getChars();
                     break;
                 }
                 case LIST_PEERS: {
@@ -196,6 +214,7 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
+                    message.secret = needle.getChars();
                     message.peers = needle.getMap();
                     break;
                 }
@@ -205,6 +224,8 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
+                    message.secret = needle.getChars();
+                    message.from = needle.getChars();
                     message.peer = needle.getChars();
                     message.content = needle.getChars();
                     break;
@@ -215,6 +236,8 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
+                    message.secret = needle.getChars();
+                    message.from = needle.getChars();
                     message.group = needle.getChars();
                     message.content = needle.getChars();
                     break;
@@ -225,6 +248,7 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
+                    message.secret = needle.getChars();
                     message.peer = needle.getChars();
                     message.name = needle.getChars();
                     break;
@@ -235,6 +259,7 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
+                    message.secret = needle.getChars();
                     message.peer = needle.getChars();
                     message.name = needle.getChars();
                     break;
@@ -245,6 +270,7 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
+                    message.token = needle.getChars();
                     break;
                 }
                 default:
@@ -448,6 +474,16 @@ public class OnceCodec {
         builder.putByte((byte) 3);       //  Message ID
 
         builder.putByte((byte) 1);
+        if (message.token != null) {
+            builder.putString(message.token);
+        } else {
+            builder.putString("");        //  Empty string
+        }
+        if (message.secret != null) {
+            builder.putString(message.secret);
+        } else {
+            builder.putString("");        //  Empty string
+        }
 
         //  Create multi-frame message
         Message frames = new Message();
@@ -500,6 +536,11 @@ public class OnceCodec {
         builder.putByte((byte) 5);       //  Message ID
 
         builder.putByte((byte) 1);
+        if (message.token != null) {
+            builder.putString(message.token);
+        } else {
+            builder.putString("");        //  Empty string
+        }
 
         //  Create multi-frame message
         Message frames = new Message();
@@ -523,6 +564,11 @@ public class OnceCodec {
         builder.putByte((byte) 6);       //  Message ID
 
         builder.putByte((byte) 1);
+        if (message.token != null) {
+            builder.putString(message.token);
+        } else {
+            builder.putString("");        //  Empty string
+        }
         if (message.endpoints != null) {
             builder.putClobs(message.endpoints);
         } else {
@@ -551,6 +597,11 @@ public class OnceCodec {
         builder.putByte((byte) 7);       //  Message ID
 
         builder.putByte((byte) 1);
+        if (message.secret != null) {
+            builder.putString(message.secret);
+        } else {
+            builder.putString("");        //  Empty string
+        }
 
         //  Create multi-frame message
         Message frames = new Message();
@@ -574,6 +625,11 @@ public class OnceCodec {
         builder.putByte((byte) 8);       //  Message ID
 
         builder.putByte((byte) 1);
+        if (message.secret != null) {
+            builder.putString(message.secret);
+        } else {
+            builder.putString("");        //  Empty string
+        }
         if (message.peers != null) {
             builder.putMap(message.peers);
         } else {
@@ -602,6 +658,16 @@ public class OnceCodec {
         builder.putByte((byte) 9);       //  Message ID
 
         builder.putByte((byte) 1);
+        if (message.secret != null) {
+            builder.putString(message.secret);
+        } else {
+            builder.putString("");        //  Empty string
+        }
+        if (message.from != null) {
+            builder.putString(message.from);
+        } else {
+            builder.putString("");        //  Empty string
+        }
         if (message.peer != null) {
             builder.putString(message.peer);
         } else {
@@ -635,6 +701,16 @@ public class OnceCodec {
         builder.putByte((byte) 10);      //  Message ID
 
         builder.putByte((byte) 1);
+        if (message.secret != null) {
+            builder.putString(message.secret);
+        } else {
+            builder.putString("");        //  Empty string
+        }
+        if (message.from != null) {
+            builder.putString(message.from);
+        } else {
+            builder.putString("");        //  Empty string
+        }
         if (message.group != null) {
             builder.putString(message.group);
         } else {
@@ -668,6 +744,11 @@ public class OnceCodec {
         builder.putByte((byte) 11);      //  Message ID
 
         builder.putByte((byte) 1);
+        if (message.secret != null) {
+            builder.putString(message.secret);
+        } else {
+            builder.putString("");        //  Empty string
+        }
         if (message.peer != null) {
             builder.putString(message.peer);
         } else {
@@ -701,6 +782,11 @@ public class OnceCodec {
         builder.putByte((byte) 12);      //  Message ID
 
         builder.putByte((byte) 1);
+        if (message.secret != null) {
+            builder.putString(message.secret);
+        } else {
+            builder.putString("");        //  Empty string
+        }
         if (message.peer != null) {
             builder.putString(message.peer);
         } else {
@@ -734,6 +820,11 @@ public class OnceCodec {
         builder.putByte((byte) 13);      //  Message ID
 
         builder.putByte((byte) 1);
+        if (message.token != null) {
+            builder.putString(message.token);
+        } else {
+            builder.putString("");        //  Empty string
+        }
 
         //  Create multi-frame message
         Message frames = new Message();

@@ -1,4 +1,3 @@
 cp ../../jyre/model/*.gsl .
-#gsl -q -script:zmq_socket -package:org/_once/protocol -author:$USER _once.xml
-
-gsl -q -script:zmq_agent -package:org/_once/agent2 -author:$USER _once_peer_local.xml _once_peer_remote.xml
+gsl -q -script:zmq_socket -package:org/_once/protocol -author:$USER _once.xml
+gsl -q -script:zmq_agent -package:org/_once/agent -author:$USER _once_peer_local.xml _once_peer_remote.xml _once_server.xml

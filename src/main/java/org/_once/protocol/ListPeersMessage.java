@@ -26,7 +26,37 @@ public class ListPeersMessage {
     public static final OnceSocket.MessageType MESSAGE_TYPE = OnceSocket.MessageType.LIST_PEERS;
 
     protected Integer version;
+    protected String secret;
     protected Map<String, String> peers;
+
+    /**
+     * Get the secret field.
+     * 
+     * @return The secret field
+     */
+    public String getSecret() {
+        return secret;
+    }
+
+    /**
+     * Set the secret field.
+     * 
+     * @param secret The secret field
+     */
+    public void setSecret(String secret) {
+        this.secret = secret;
+    }
+
+    /**
+     * Set the secret field.
+     *
+     * @param secret The secret field
+     * @return The ListPeersMessage, for method chaining
+     */
+    public ListPeersMessage withSecret(String secret) {
+        this.secret = secret;
+        return this;
+    }
 
     /**
      * Get the the peers hash.

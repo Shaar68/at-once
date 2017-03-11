@@ -23,8 +23,68 @@ public class RemoteWhisperMessage {
     public static final OnceSocket.MessageType MESSAGE_TYPE = OnceSocket.MessageType.REMOTE_WHISPER;
 
     protected Integer version;
+    protected String secret;
+    protected String from;
     protected String peer;
     protected String content;
+
+    /**
+     * Get the secret field.
+     * 
+     * @return The secret field
+     */
+    public String getSecret() {
+        return secret;
+    }
+
+    /**
+     * Set the secret field.
+     * 
+     * @param secret The secret field
+     */
+    public void setSecret(String secret) {
+        this.secret = secret;
+    }
+
+    /**
+     * Set the secret field.
+     *
+     * @param secret The secret field
+     * @return The RemoteWhisperMessage, for method chaining
+     */
+    public RemoteWhisperMessage withSecret(String secret) {
+        this.secret = secret;
+        return this;
+    }
+
+    /**
+     * Get the from field.
+     * 
+     * @return The from field
+     */
+    public String getFrom() {
+        return from;
+    }
+
+    /**
+     * Set the from field.
+     * 
+     * @param from The from field
+     */
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    /**
+     * Set the from field.
+     *
+     * @param from The from field
+     * @return The RemoteWhisperMessage, for method chaining
+     */
+    public RemoteWhisperMessage withFrom(String from) {
+        this.from = from;
+        return this;
+    }
 
     /**
      * Get the peer field.

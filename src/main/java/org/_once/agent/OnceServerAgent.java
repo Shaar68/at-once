@@ -1,7 +1,7 @@
 /* ============================================================================
- * OncePeerLocalAgent.java
+ * OnceServerAgent.java
  *
- * Generated class for OncePeerLocalAgent
+ * Generated class for OnceServerAgent
  * ----------------------------------------------------------------------------
  * Copyright (c) 2017 InSource Software -- http://www.insource.io          
  * Copyright other contributors as noted in the AUTHORS file.              
@@ -22,11 +22,11 @@ import org.zeromq.api.Reactor;
 import org.zeromq.api.Socket;
 
 /**
- * OncePeerLocalAgent class.
+ * OnceServerAgent class.
  *
  * @author sriesenberg
  */
-public class OncePeerLocalAgent extends LoopAdapter {
+public class OnceServerAgent extends LoopAdapter {
     // Application callback handler
     private Handler handler;
 
@@ -38,7 +38,7 @@ public class OncePeerLocalAgent extends LoopAdapter {
     private Event event;
     private Event next;
 
-    public OncePeerLocalAgent(Handler handler) {
+    public OnceServerAgent(Handler handler) {
         this.handler = handler;
     }
 
@@ -90,7 +90,8 @@ public class OncePeerLocalAgent extends LoopAdapter {
                 switch (event) {
                     case ENTER: {
                         handler.onEnter(this);
-                        state = State.READY;
+                        state = State.RESPONDING;
+                        next = Event.CHALLENGE;
                         break;
                     }
                 }
@@ -100,6 +101,8 @@ public class OncePeerLocalAgent extends LoopAdapter {
                 switch (event) {
                     case ENTER: {
                         handler.onEnter(this);
+                        state = State.RESPONDING;
+                        next = Event.CHALLENGE;
                         break;
                     }
                     case JOIN: {
@@ -107,7 +110,9 @@ public class OncePeerLocalAgent extends LoopAdapter {
                         break;
                     }
                     case WHISPER: {
+                        handler.checkAuthenticationToken(this);
                         handler.onWhisper(this);
+                        state = State.RESPONDING;
                         break;
                     }
                     case SHOUT: {
@@ -125,6 +130,48 @@ public class OncePeerLocalAgent extends LoopAdapter {
                 }
                 break;
             }
+            case RESPONDING: {
+                switch (event) {
+                    case CHALLENGE: {
+                        // TODO: send CHALLENGE
+                        state = State.READY;
+                        break;
+                    }
+                    case AUTHENTICATE: {
+                        handler.onAuthenticate(this);
+                        state = State.AUTHENTICATING;
+                        break;
+                    }
+                    case UNAUTHORIZED: {
+                        handler.onUnauthorized(this);
+                        // TODO: send NOPE
+                        state = State.READY;
+                        break;
+                    }
+                    case GET_ENDPOINTS: {
+                        handler.onGetEndpoints(this);
+                        // TODO: send LIST ENDPOINTS
+                        state = State.READY;
+                        break;
+                    }
+                }
+                break;
+            }
+            case AUTHENTICATING: {
+                switch (event) {
+                    case AUTHENTICATE_OK: {
+                        // TODO: send OK
+                        state = State.READY;
+                        break;
+                    }
+                    case AUTHENTICATE_FAILED: {
+                        // TODO: send NOPE
+                        state = State.READY;
+                        break;
+                    }
+                }
+                break;
+            }
         }
     }
 
@@ -133,7 +180,9 @@ public class OncePeerLocalAgent extends LoopAdapter {
      */
     public enum State {
         START,
-        READY
+        READY,
+        RESPONDING,
+        AUTHENTICATING
     }
 
     /**
@@ -145,7 +194,13 @@ public class OncePeerLocalAgent extends LoopAdapter {
         WHISPER,
         SHOUT,
         LEAVE,
-        EXIT
+        EXIT,
+        CHALLENGE,
+        AUTHENTICATE,
+        UNAUTHORIZED,
+        GET_ENDPOINTS,
+        AUTHENTICATE_OK,
+        AUTHENTICATE_FAILED
     }
 
     /**
@@ -157,41 +212,69 @@ public class OncePeerLocalAgent extends LoopAdapter {
          *
          * @param agent Handle to the agent instance
          */
-        void onEnter(OncePeerLocalAgent agent);
+        void onEnter(OnceServerAgent agent);
 
         /**
          * Callback for the "on join" action.
          *
          * @param agent Handle to the agent instance
          */
-        void onJoin(OncePeerLocalAgent agent);
+        void onJoin(OnceServerAgent agent);
+
+        /**
+         * Callback for the "check authentication token" action.
+         *
+         * @param agent Handle to the agent instance
+         */
+        void checkAuthenticationToken(OnceServerAgent agent);
 
         /**
          * Callback for the "on whisper" action.
          *
          * @param agent Handle to the agent instance
          */
-        void onWhisper(OncePeerLocalAgent agent);
+        void onWhisper(OnceServerAgent agent);
 
         /**
          * Callback for the "on shout" action.
          *
          * @param agent Handle to the agent instance
          */
-        void onShout(OncePeerLocalAgent agent);
+        void onShout(OnceServerAgent agent);
 
         /**
          * Callback for the "on leave" action.
          *
          * @param agent Handle to the agent instance
          */
-        void onLeave(OncePeerLocalAgent agent);
+        void onLeave(OnceServerAgent agent);
 
         /**
          * Callback for the "on exit" action.
          *
          * @param agent Handle to the agent instance
          */
-        void onExit(OncePeerLocalAgent agent);
+        void onExit(OnceServerAgent agent);
+
+        /**
+         * Callback for the "on authenticate" action.
+         *
+         * @param agent Handle to the agent instance
+         */
+        void onAuthenticate(OnceServerAgent agent);
+
+        /**
+         * Callback for the "on unauthorized" action.
+         *
+         * @param agent Handle to the agent instance
+         */
+        void onUnauthorized(OnceServerAgent agent);
+
+        /**
+         * Callback for the "on get endpoints" action.
+         *
+         * @param agent Handle to the agent instance
+         */
+        void onGetEndpoints(OnceServerAgent agent);
     }
 }

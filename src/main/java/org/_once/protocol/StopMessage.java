@@ -23,5 +23,35 @@ public class StopMessage {
     public static final OnceSocket.MessageType MESSAGE_TYPE = OnceSocket.MessageType.STOP;
 
     protected Integer version;
+    protected String token;
+
+    /**
+     * Get the token field.
+     * 
+     * @return The token field
+     */
+    public String getToken() {
+        return token;
+    }
+
+    /**
+     * Set the token field.
+     * 
+     * @param token The token field
+     */
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    /**
+     * Set the token field.
+     *
+     * @param token The token field
+     * @return The StopMessage, for method chaining
+     */
+    public StopMessage withToken(String token) {
+        this.token = token;
+        return this;
+    }
 }
 

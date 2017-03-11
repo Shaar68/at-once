@@ -23,8 +23,68 @@ public class RemoteShoutMessage {
     public static final OnceSocket.MessageType MESSAGE_TYPE = OnceSocket.MessageType.REMOTE_SHOUT;
 
     protected Integer version;
+    protected String secret;
+    protected String from;
     protected String group;
     protected String content;
+
+    /**
+     * Get the secret field.
+     * 
+     * @return The secret field
+     */
+    public String getSecret() {
+        return secret;
+    }
+
+    /**
+     * Set the secret field.
+     * 
+     * @param secret The secret field
+     */
+    public void setSecret(String secret) {
+        this.secret = secret;
+    }
+
+    /**
+     * Set the secret field.
+     *
+     * @param secret The secret field
+     * @return The RemoteShoutMessage, for method chaining
+     */
+    public RemoteShoutMessage withSecret(String secret) {
+        this.secret = secret;
+        return this;
+    }
+
+    /**
+     * Get the from field.
+     * 
+     * @return The from field
+     */
+    public String getFrom() {
+        return from;
+    }
+
+    /**
+     * Set the from field.
+     * 
+     * @param from The from field
+     */
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    /**
+     * Set the from field.
+     *
+     * @param from The from field
+     * @return The RemoteShoutMessage, for method chaining
+     */
+    public RemoteShoutMessage withFrom(String from) {
+        this.from = from;
+        return this;
+    }
 
     /**
      * Get the group field.

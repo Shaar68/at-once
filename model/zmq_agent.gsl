@@ -75,7 +75,10 @@ endfor
  */
 package $(PackageName);
 
-import org.zeromq.api.*;
+import org.zeromq.api.LoopAdapter;
+import org.zeromq.api.Message;
+import org.zeromq.api.Reactor;
+import org.zeromq.api.Socket;
 
 /**
  * $(ClassName)Agent class.
@@ -159,6 +162,9 @@ public class $(ClassName)Agent extends LoopAdapter {
 .       if defined (event.next)
                         state = State.$(NEXT:C);
 .       endif
+.       if defined (event.trigger)
+                        next = Event.$(TRIGGER:C);
+.       endif
                         break;
                     }
 .   endfor
@@ -175,6 +181,9 @@ public class $(ClassName)Agent extends LoopAdapter {
 .       endfor
 .       if defined (event.next)
                         state = State.$(NEXT:C);
+.       endif
+.       if defined (event.trigger)
+                        next = Event.$(TRIGGER:C);
 .       endif
                         break;
                     }

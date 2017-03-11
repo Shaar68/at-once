@@ -38,38 +38,51 @@ import java.io.Closeable;
  *    response                     bytes []
  *  OK - Authentication response indicating successful authentication.
  *    version                      number 1
+ *    token                        string
+ *    secret                       string
  *  NOPE - Authentication response indicating unsuccessful authentication.
  *    version                      number 1
  *    statusCode                   number 4
  *    statusText                   string
  *  GET_ENDPOINTS - Get a list of peers connected to the server.
  *    version                      number 1
+ *    token                        string
  *  LIST_ENDPOINTS - Send a list of peers connected to the server.
  *    version                      number 1
+ *    token                        string
  *    endpoints                    strings
  *  GET_PEERS - Get a list of peers connected to the peer on the remote network.
  *    version                      number 1
+ *    secret                       string
  *  LIST_PEERS - Send a list of peers connected to the peer on the remote network.
  *    version                      number 1
+ *    secret                       string
  *    peers                        hash
  *  REMOTE_WHISPER - Relay a whisper message through a bridge node.
  *    version                      number 1
+ *    secret                       string
+ *    from                         string
  *    peer                         string
  *    content                      string
  *  REMOTE_SHOUT - Relay a shout through a bridge node.
  *    version                      number 1
+ *    secret                       string
+ *    from                         string
  *    group                        string
  *    content                      string
  *  REMOTE_ENTER - Relay a remote enter event through a bridge node.
  *    version                      number 1
+ *    secret                       string
  *    peer                         string
  *    name                         string
  *  REMOTE_EXIT - Relay a remote exit event through a bridge node.
  *    version                      number 1
+ *    secret                       string
  *    peer                         string
  *    name                         string
  *  STOP - Message indicating the peer should exit.
  *    version                      number 1
+ *    token                        string
  * </pre>
  * 
  * @author sriesenberg

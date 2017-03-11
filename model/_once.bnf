@@ -1,9 +1,9 @@
 The following ABNF grammar defines the Socket for working with @Once messages.:
 
-        start       = *greeting update *traffic
+        start       = *greeting connecting *traffic
         greeting    = S:CHALLENGE C:AUTHENTICATE ( S:OK / S:NOPE )
-        update      = C:GET-ENDPOINTS S:LIST-ENDPOINTS
-        traffic     = C:REMOTE-WHISPER / C:REMOTE-SHOUT
+        connecting  = C:GET-ENDPOINTS S:LIST-ENDPOINTS
+        traffic     = C:REMOTE-WHISPER / C:REMOTE-SHOUT / C:REMOTE-ENTER / C:REMOTE-EXIT
 
     ;  Authentication challenge to be answered by a peer.                    
 
@@ -23,8 +23,10 @@ The following ABNF grammar defines the Socket for working with @Once messages.:
 
     ;  Authentication response indicating successful authentication.         
 
-    OK              = signature %d3 version
+    OK              = signature %d3 version token secret
     version         = number-1              ; Version number (1)
+    token           = string                ; Authentication token.
+    secret          = string                ; Shared secret.
 
     ;  Authentication response indicating unsuccessful authentication.       
 
@@ -35,58 +37,69 @@ The following ABNF grammar defines the Socket for working with @Once messages.:
 
     ;  Get a list of peers connected to the server.                          
 
-    GET-ENDPOINTS   = signature %d5 version
+    GET-ENDPOINTS   = signature %d5 version token
     version         = number-1              ; Version number (1)
+    token           = string                ; Authentication token.
 
     ;  Send a list of peers connected to the server.                         
 
-    LIST-ENDPOINTS  = signature %d6 version endpoints
+    LIST-ENDPOINTS  = signature %d6 version token endpoints
     version         = number-1              ; Version number (1)
+    token           = string                ; Authentication token.
     endpoints       = strings               ; List of peer endpoints.
 
     ;  Get a list of peers connected to the peer on the remote network.      
 
-    GET-PEERS       = signature %d7 version
+    GET-PEERS       = signature %d7 version secret
     version         = number-1              ; Version number (1)
+    secret          = string                ; Shared secret.
 
     ;  Send a list of peers connected to the peer on the remote network.     
 
-    LIST-PEERS      = signature %d8 version peers
+    LIST-PEERS      = signature %d8 version secret peers
     version         = number-1              ; Version number (1)
+    secret          = string                ; Shared secret.
     peers           = hash                  ; List of peers.
 
     ;  Relay a whisper message through a bridge node.                        
 
-    REMOTE-WHISPER  = signature %d9 version peer content
+    REMOTE-WHISPER  = signature %d9 version secret from peer content
     version         = number-1              ; Version number (1)
+    secret          = string                ; Shared secret.
+    from            = string                ; Local peer.
     peer            = string                ; Remote peer.
     content         = string                ; Message content.
 
     ;  Relay a shout through a bridge node.                                  
 
-    REMOTE-SHOUT    = signature %d10 version group content
+    REMOTE-SHOUT    = signature %d10 version secret from group content
     version         = number-1              ; Version number (1)
+    secret          = string                ; Shared secret.
+    from            = string                ; Local peer.
     group           = string                ; Remote group.
     content         = string                ; Message content.
 
     ;  Relay a remote enter event through a bridge node.                     
 
-    REMOTE-ENTER    = signature %d11 version peer name
+    REMOTE-ENTER    = signature %d11 version secret peer name
     version         = number-1              ; Version number (1)
+    secret          = string                ; Shared secret.
     peer            = string                ; Remote peer.
     name            = string                ; Peer name.
 
     ;  Relay a remote exit event through a bridge node.                      
 
-    REMOTE-EXIT     = signature %d12 version peer name
+    REMOTE-EXIT     = signature %d12 version secret peer name
     version         = number-1              ; Version number (1)
+    secret          = string                ; Shared secret.
     peer            = string                ; Remote peer.
     name            = string                ; Peer name.
 
     ;  Message indicating the peer should exit.                              
 
-    STOP            = signature %d13 version
+    STOP            = signature %d13 version token
     version         = number-1              ; Version number (1)
+    token           = string                ; Authentication token.
 
     ; A list of string values
     strings         = strings-count *strings-value

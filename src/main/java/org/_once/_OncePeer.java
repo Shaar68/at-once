@@ -1,5 +1,6 @@
 package org._once;
 
+import org._once.agent.OncePeerLocalAgent;
 import org._once.agent.OncePeerRemoteAgent;
 import org._once.agent.OncePeerRemoteAgent.Event;
 import org._once.protocol.GetEndpointsMessage;
@@ -12,10 +13,7 @@ import org._once.protocol.RemoteExitMessage;
 import org.jyre.ZreInterface;
 import org.zeromq.ContextFactory;
 import org.zeromq.api.Context;
-import org.zeromq.api.LoopAdapter;
 import org.zeromq.api.Message;
-import org.zeromq.api.Reactor;
-import org.zeromq.api.Socket;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,10 +49,9 @@ public class _OncePeer {
         remoteZre.start();
         remoteZre.connect("jyre.org");
         remoteZre.join("everyone");
-        remoteZre.receive(); // ENTER
 
         context.buildReactor()
-            .withInPollable(localZre.getSocket(), new LocalHandler())
+            .withInPollable(localZre.getSocket(), new OncePeerLocalAgent(new LocalHandler()))
             .withInPollable(remoteZre.getSocket(), new OncePeerRemoteAgent(new RemoteHandler()))
             .start();
     }
@@ -65,76 +62,110 @@ public class _OncePeer {
         private OnceCodec.MessageType messageType;
 
         @Override
-        public void onWhisper(OncePeerRemoteAgent handle) {
-            Message message = handle.getMessage();
-            peer = message.popString();
-            messageType = codec.deserialize(message);
+        public void onEnter(OncePeerRemoteAgent agent) {
+            Message message = agent.getMessage();
+            String peer = message.popString();
+            String endpoint = remoteZre.getPeerEndpoint(peer);
+            bridgePeers.put(peer, endpoint);
 
-            onMessage(handle);
+            remoteZre.whisper(peer, codec.serialize(new GetPeersMessage()));
         }
 
         @Override
-        public void onShout(OncePeerRemoteAgent handle) {
-            Message message = handle.getMessage();
-            peer = message.popString();
-            group = message.popString();
-
-            onMessage(handle);
+        public void onJoin(OncePeerRemoteAgent agent) {
+            // Do nothing.
         }
 
-        private void onMessage(OncePeerRemoteAgent handle) {
+        @Override
+        public void onLeave(OncePeerRemoteAgent agent) {
+            // Do nothing.
+        }
+
+        @Override
+        public void onExit(OncePeerRemoteAgent agent) {
+            Message message = agent.getMessage();
+            String peer = message.popString();
+            bridgePeers.remove(peer);
+            remotePeers.remove(peer);
+        }
+
+        @Override
+        public void checkSharedSecret(OncePeerRemoteAgent agent) {
+            // TODO: Implement security.
+        }
+
+        @Override
+        public void onWhisper(OncePeerRemoteAgent agent) {
+            Message message = agent.getMessage();
+            peer = message.popString();
+            messageType = codec.deserialize(message);
+
+            onMessage(agent);
+        }
+
+        @Override
+        public void onShout(OncePeerRemoteAgent agent) {
+            Message message = agent.getMessage();
+            peer = message.popString();
+            group = message.popString();
+            messageType = codec.deserialize(message);
+
+            onMessage(agent);
+        }
+
+        private void onMessage(OncePeerRemoteAgent agent) {
             switch (messageType) {
                 case CHALLENGE:
-                    handle.triggerEvent(Event.CHALLENGE);
+                    agent.triggerEvent(Event.CHALLENGE);
                     break;
                 case OK:
-                    handle.triggerEvent(Event.OK);
+                    agent.triggerEvent(Event.OK);
                     break;
                 case NOPE:
-                    handle.triggerEvent(Event.NOPE);
+                    agent.triggerEvent(Event.NOPE);
                     break;
                 case LIST_ENDPOINTS:
-                    handle.triggerEvent(Event.LIST_ENDPOINTS);
+                    agent.triggerEvent(Event.LIST_ENDPOINTS);
                     break;
                 case GET_PEERS:
-                    handle.triggerEvent(Event.GET_PEERS);
+                    agent.triggerEvent(Event.GET_PEERS);
                     break;
                 case LIST_PEERS:
-                    handle.triggerEvent(Event.LIST_PEERS);
+                    agent.triggerEvent(Event.LIST_PEERS);
                     break;
                 case REMOTE_ENTER:
-                    handle.triggerEvent(Event.REMOTE_ENTER);
+                    agent.triggerEvent(Event.REMOTE_ENTER);
                     break;
                 case REMOTE_EXIT:
-                    handle.triggerEvent(Event.REMOTE_EXIT);
+                    agent.triggerEvent(Event.REMOTE_EXIT);
                     break;
                 case STOP:
-                    handle.triggerEvent(Event.STOP);
+                    agent.triggerEvent(Event.STOP);
                     break;
             }
         }
 
         @Override
-        public void onServerConnect(OncePeerRemoteAgent handle) {
-            Message message = handle.getMessage();
+        public void onServerConnect(OncePeerRemoteAgent agent) {
+            Message message = agent.getMessage();
             server = message.popString();
         }
 
         @Override
-        public void onChallenge(OncePeerRemoteAgent handle) {
+        public void onChallenge(OncePeerRemoteAgent agent) {
             // TODO: Handle challenge
-            handle.triggerEvent(Event.OK);
+            agent.triggerEvent(Event.OK);
         }
 
         @Override
-        public void onOk(OncePeerRemoteAgent handle) {
+        public void onOk(OncePeerRemoteAgent agent) {
             GetEndpointsMessage message = new GetEndpointsMessage();
             remoteZre.whisper(server, codec.serialize(message));
         }
 
         @Override
-        public void onListEndpoints(OncePeerRemoteAgent handle) {
-            OnceCodec.MessageType messageType = codec.deserialize(handle.getMessage());
+        public void onListEndpoints(OncePeerRemoteAgent agent) {
+            OnceCodec.MessageType messageType = codec.deserialize(agent.getMessage());
             assert (messageType == OnceCodec.MessageType.LIST_ENDPOINTS);
 
             ListEndpointsMessage message = codec.getListEndpoints();
@@ -147,25 +178,7 @@ public class _OncePeer {
         }
 
         @Override
-        public void onEnter(OncePeerRemoteAgent handle) {
-            Message message = handle.getMessage();
-            String peer = message.popString();
-            String endpoint = remoteZre.getPeerEndpoint(peer);
-            bridgePeers.put(peer, endpoint);
-
-            remoteZre.whisper(peer, codec.serialize(new GetPeersMessage()));
-        }
-
-        @Override
-        public void onLeave(OncePeerRemoteAgent handle) {
-            Message message = handle.getMessage();
-            String peer = message.popString();
-            bridgePeers.remove(peer);
-            remotePeers.remove(peer);
-        }
-
-        @Override
-        public void onGetPeers(OncePeerRemoteAgent handle) {
+        public void onGetPeers(OncePeerRemoteAgent agent) {
             List<String> peers = remoteZre.getPeers();
             ListPeersMessage message = new ListPeersMessage();
             for (String peer : peers) {
@@ -176,7 +189,7 @@ public class _OncePeer {
         }
 
         @Override
-        public void onListPeers(OncePeerRemoteAgent handle) {
+        public void onListPeers(OncePeerRemoteAgent agent) {
             ListPeersMessage message = codec.getListPeers();
             Map<String, String> peers = message.getPeers();
 
@@ -190,14 +203,14 @@ public class _OncePeer {
         }
 
         @Override
-        public void onRemoteEnter(OncePeerRemoteAgent handle) {
+        public void onRemoteEnter(OncePeerRemoteAgent agent) {
             List<RemotePeer> peers = remotePeers.computeIfAbsent(peer, k -> new ArrayList<>());
             RemoteEnterMessage message = codec.getRemoteEnter();
             peers.add(new RemotePeer(message.getPeer(), message.getName()));
         }
 
         @Override
-        public void onRemoteExit(OncePeerRemoteAgent handle) {
+        public void onRemoteExit(OncePeerRemoteAgent agent) {
             List<RemotePeer> peers = remotePeers.get(peer);
             if (peers != null) {
                 RemoteExitMessage message = codec.getRemoteExit();
@@ -206,18 +219,13 @@ public class _OncePeer {
         }
 
         @Override
-        public void onRemoteWhisper(OncePeerRemoteAgent handle) {
+        public void onRemoteWhisper(OncePeerRemoteAgent agent) {
             // TODO: Implement remote whisper
         }
 
         @Override
-        public void onRemoteShout(OncePeerRemoteAgent handle) {
+        public void onRemoteShout(OncePeerRemoteAgent agent) {
             // TODO: Implement remote shout
-        }
-
-        @Override
-        public void execute(OncePeerRemoteAgent handle) {
-            // TODO: Needed?
         }
     }
 
@@ -251,47 +259,60 @@ public class _OncePeer {
         }
     }
 
-    private class LocalHandler extends LoopAdapter {
+    private class LocalHandler implements OncePeerLocalAgent.Handler {
         @Override
-        protected void execute(Reactor reactor, Socket socket) {
-            Message message = localZre.receive();
-            String command = message.popString();
-            switch (command) {
-                case "ENTER":
-                    onEnter(message);
+        public void onEnter(OncePeerLocalAgent agent) {
+            Message message = agent.getMessage();
+            String peer = message.popString();
+            String name = message.popString();
+
+            RemoteEnterMessage enter = new RemoteEnterMessage()
+                .withPeer(peer)
+                .withName(name);
+            remoteZre.shout("everyone", codec.serialize(enter));
+        }
+
+        @Override
+        public void onJoin(OncePeerLocalAgent agent) {
+
+        }
+
+        @Override
+        public void onWhisper(OncePeerLocalAgent agent) {
+            Message message = agent.getMessage();
+            String peer = message.popString();
+
+            OnceCodec.MessageType messageType = codec.deserialize(message);
+            switch (messageType) {
+                case REMOTE_WHISPER:
+                    // TODO: Implement remote whisper
                     break;
-                case "LEAVE":
-                    onLeave(message);
-                    break;
-                case "WHISPER":
-                    onWhisper(message);
-                    break;
-                case "SHOUT":
-                    onShout(message);
+                case REMOTE_SHOUT:
+                    // TODO: Implement remote shout
                     break;
             }
         }
 
-        private void onEnter(Message message) {
-            String peer = message.popString();
-            String name = message.popString();
-
-            Message.FrameBuilder frameBuilder = new Message.FrameBuilder();
-            frameBuilder.putString("ENTER");
-            frameBuilder.putString(peer);
-            frameBuilder.putString(name);
-            remoteZre.shout("everyone", new Message(frameBuilder.build()));
+        @Override
+        public void onShout(OncePeerLocalAgent agent) {
+            // Do nothing.
         }
 
-        private void onLeave(Message message) {
+        @Override
+        public void onLeave(OncePeerLocalAgent agent) {
+            // Do nothing.
+        }
+
+        @Override
+        public void onExit(OncePeerLocalAgent agent) {
+            Message message = agent.getMessage();
             String peer = message.popString();
             String name = message.popString();
 
-            Message.FrameBuilder frameBuilder = new Message.FrameBuilder();
-            frameBuilder.putString("LEAVE");
-            frameBuilder.putString(peer);
-            frameBuilder.putString(name);
-            remoteZre.shout("everyone", new Message(frameBuilder.build()));
+            RemoteExitMessage exit = new RemoteExitMessage()
+                .withPeer(peer)
+                .withName(name);
+            remoteZre.shout("everyone", codec.serialize(exit));
         }
 
         private void onWhisper(Message message) {

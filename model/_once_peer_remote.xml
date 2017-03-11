@@ -76,18 +76,16 @@
         <event name="stop">
             <action name="stop" />
         </event>
-
-        <event name="*">
-            <action name="execute" />
-        </event>
     </state>
 
     <state name="external">
         <event name="WHISPER">
+            <action name="check shared secret" />
             <action name="on whisper" />
         </event>
 
         <event name="SHOUT">
+            <action name="check shared secret" />
             <action name="on shout" />
         </event>
     </state>

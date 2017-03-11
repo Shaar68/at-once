@@ -82,10 +82,14 @@ public class OnceSocketTest {
         OnceSocket in = new OnceSocket(router);
         
         OkMessage message = new OkMessage();
+        message.setToken("Life is short but Now lasts for ever");
+        message.setSecret("Life is short but Now lasts for ever");
         
         assertTrue(out.send(message));
         assertEquals(OnceSocket.MessageType.OK, in.receive());
         message = in.getOk();
+        assertEquals(message.getToken(), "Life is short but Now lasts for ever");
+        assertEquals(message.getSecret(), "Life is short but Now lasts for ever");
         
         out.close();
         in.close();
@@ -116,10 +120,12 @@ public class OnceSocketTest {
         OnceSocket in = new OnceSocket(router);
         
         GetEndpointsMessage message = new GetEndpointsMessage();
+        message.setToken("Life is short but Now lasts for ever");
         
         assertTrue(out.send(message));
         assertEquals(OnceSocket.MessageType.GET_ENDPOINTS, in.receive());
         message = in.getGetEndpoints();
+        assertEquals(message.getToken(), "Life is short but Now lasts for ever");
         
         out.close();
         in.close();
@@ -131,12 +137,14 @@ public class OnceSocketTest {
         OnceSocket in = new OnceSocket(router);
         
         ListEndpointsMessage message = new ListEndpointsMessage();
+        message.setToken("Life is short but Now lasts for ever");
         message.addEndpoint("Name: Brutus");
         message.addEndpoint("Age: 43");
         
         assertTrue(out.send(message));
         assertEquals(OnceSocket.MessageType.LIST_ENDPOINTS, in.receive());
         message = in.getListEndpoints();
+        assertEquals(message.getToken(), "Life is short but Now lasts for ever");
         assertEquals(message.getEndpoints().size(), 2);
         assertEquals(message.getEndpoints().get(0), "Name: Brutus");
         assertEquals(message.getEndpoints().get(1), "Age: 43");
@@ -151,10 +159,12 @@ public class OnceSocketTest {
         OnceSocket in = new OnceSocket(router);
         
         GetPeersMessage message = new GetPeersMessage();
+        message.setSecret("Life is short but Now lasts for ever");
         
         assertTrue(out.send(message));
         assertEquals(OnceSocket.MessageType.GET_PEERS, in.receive());
         message = in.getGetPeers();
+        assertEquals(message.getSecret(), "Life is short but Now lasts for ever");
         
         out.close();
         in.close();
@@ -166,12 +176,14 @@ public class OnceSocketTest {
         OnceSocket in = new OnceSocket(router);
         
         ListPeersMessage message = new ListPeersMessage();
+        message.setSecret("Life is short but Now lasts for ever");
         message.putPeer("Name", "Brutus");
         message.putPeer("Age", 43);
         
         assertTrue(out.send(message));
         assertEquals(OnceSocket.MessageType.LIST_PEERS, in.receive());
         message = in.getListPeers();
+        assertEquals(message.getSecret(), "Life is short but Now lasts for ever");
         assertEquals(message.getPeers().size(), 2);
         assertEquals(message.getPeer("Name", "?"), "Brutus");
         assertEquals(message.getPeer("Age", 0), 43);
@@ -186,12 +198,16 @@ public class OnceSocketTest {
         OnceSocket in = new OnceSocket(router);
         
         RemoteWhisperMessage message = new RemoteWhisperMessage();
+        message.setSecret("Life is short but Now lasts for ever");
+        message.setFrom("Life is short but Now lasts for ever");
         message.setPeer("Life is short but Now lasts for ever");
         message.setContent("Life is short but Now lasts for ever");
         
         assertTrue(out.send(message));
         assertEquals(OnceSocket.MessageType.REMOTE_WHISPER, in.receive());
         message = in.getRemoteWhisper();
+        assertEquals(message.getSecret(), "Life is short but Now lasts for ever");
+        assertEquals(message.getFrom(), "Life is short but Now lasts for ever");
         assertEquals(message.getPeer(), "Life is short but Now lasts for ever");
         assertEquals(message.getContent(), "Life is short but Now lasts for ever");
         
@@ -205,12 +221,16 @@ public class OnceSocketTest {
         OnceSocket in = new OnceSocket(router);
         
         RemoteShoutMessage message = new RemoteShoutMessage();
+        message.setSecret("Life is short but Now lasts for ever");
+        message.setFrom("Life is short but Now lasts for ever");
         message.setGroup("Life is short but Now lasts for ever");
         message.setContent("Life is short but Now lasts for ever");
         
         assertTrue(out.send(message));
         assertEquals(OnceSocket.MessageType.REMOTE_SHOUT, in.receive());
         message = in.getRemoteShout();
+        assertEquals(message.getSecret(), "Life is short but Now lasts for ever");
+        assertEquals(message.getFrom(), "Life is short but Now lasts for ever");
         assertEquals(message.getGroup(), "Life is short but Now lasts for ever");
         assertEquals(message.getContent(), "Life is short but Now lasts for ever");
         
@@ -224,12 +244,14 @@ public class OnceSocketTest {
         OnceSocket in = new OnceSocket(router);
         
         RemoteEnterMessage message = new RemoteEnterMessage();
+        message.setSecret("Life is short but Now lasts for ever");
         message.setPeer("Life is short but Now lasts for ever");
         message.setName("Life is short but Now lasts for ever");
         
         assertTrue(out.send(message));
         assertEquals(OnceSocket.MessageType.REMOTE_ENTER, in.receive());
         message = in.getRemoteEnter();
+        assertEquals(message.getSecret(), "Life is short but Now lasts for ever");
         assertEquals(message.getPeer(), "Life is short but Now lasts for ever");
         assertEquals(message.getName(), "Life is short but Now lasts for ever");
         
@@ -243,12 +265,14 @@ public class OnceSocketTest {
         OnceSocket in = new OnceSocket(router);
         
         RemoteExitMessage message = new RemoteExitMessage();
+        message.setSecret("Life is short but Now lasts for ever");
         message.setPeer("Life is short but Now lasts for ever");
         message.setName("Life is short but Now lasts for ever");
         
         assertTrue(out.send(message));
         assertEquals(OnceSocket.MessageType.REMOTE_EXIT, in.receive());
         message = in.getRemoteExit();
+        assertEquals(message.getSecret(), "Life is short but Now lasts for ever");
         assertEquals(message.getPeer(), "Life is short but Now lasts for ever");
         assertEquals(message.getName(), "Life is short but Now lasts for ever");
         
@@ -262,10 +286,12 @@ public class OnceSocketTest {
         OnceSocket in = new OnceSocket(router);
         
         StopMessage message = new StopMessage();
+        message.setToken("Life is short but Now lasts for ever");
         
         assertTrue(out.send(message));
         assertEquals(OnceSocket.MessageType.STOP, in.receive());
         message = in.getStop();
+        assertEquals(message.getToken(), "Life is short but Now lasts for ever");
         
         out.close();
         in.close();
