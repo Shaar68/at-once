@@ -1,13 +1,15 @@
-package org._once.actor;
+package org._once.agent;
 
 import org.zeromq.api.LoopAdapter;
 import org.zeromq.api.Message;
 import org.zeromq.api.Reactor;
 import org.zeromq.api.Socket;
 
-public class OncePeerRemoteClient extends LoopAdapter {
+public class OncePeerRemoteAgent extends LoopAdapter {
+    // Application callback handler
     private Handler handler;
 
+    // Structure of our class
     private Reactor reactor;
     private Socket socket;
     private Message message;
@@ -15,7 +17,7 @@ public class OncePeerRemoteClient extends LoopAdapter {
     private Event event;
     private Event next;
 
-    public OncePeerRemoteClient(Handler handler) {
+    public OncePeerRemoteAgent(Handler handler) {
         this.handler = handler;
     }
 
@@ -219,90 +221,90 @@ public class OncePeerRemoteClient extends LoopAdapter {
          *
          * @param handle
          */
-        void onWhisper(OncePeerRemoteClient handle);
+        void onWhisper(OncePeerRemoteAgent handle);
 
         /**
          *
          * @param handle
          */
-        void onShout(OncePeerRemoteClient handle);
+        void onShout(OncePeerRemoteAgent handle);
 
         /**
          *
          * @param handle
          */
-        void onServerConnect(OncePeerRemoteClient handle);
+        void onServerConnect(OncePeerRemoteAgent handle);
 
         /**
          *
          * @param handle
          */
-        void onChallenge(OncePeerRemoteClient handle);
+        void onChallenge(OncePeerRemoteAgent handle);
 
         /**
          *
          * @param handle
          */
-        void onOk(OncePeerRemoteClient handle);
+        void onOk(OncePeerRemoteAgent handle);
 
         /**
          *
          * @param handle
          */
-        void onListEndpoints(OncePeerRemoteClient handle);
+        void onListEndpoints(OncePeerRemoteAgent handle);
 
         /**
          *
          * @param handle
          */
-        void onEnter(OncePeerRemoteClient handle);
+        void onEnter(OncePeerRemoteAgent handle);
 
         /**
          *
          * @param handle
          */
-        void onGetPeers(OncePeerRemoteClient handle);
+        void onGetPeers(OncePeerRemoteAgent handle);
 
         /**
          *
          * @param handle
          */
-        void onListPeers(OncePeerRemoteClient handle);
+        void onListPeers(OncePeerRemoteAgent handle);
 
         /**
          *
          * @param handle
          */
-        void onRemoteEnter(OncePeerRemoteClient handle);
+        void onRemoteEnter(OncePeerRemoteAgent handle);
 
         /**
          *
          * @param handle
          */
-        void onRemoteExit(OncePeerRemoteClient handle);
+        void onRemoteExit(OncePeerRemoteAgent handle);
 
         /**
          *
          * @param handle
          */
-        void onRemoteWhisper(OncePeerRemoteClient handle);
+        void onRemoteWhisper(OncePeerRemoteAgent handle);
 
         /**
          *
          * @param handle
          */
-        void onRemoteShout(OncePeerRemoteClient handle);
+        void onRemoteShout(OncePeerRemoteAgent handle);
 
         /**
          *
          * @param handle
          */
-        void onLeave(OncePeerRemoteClient handle);
+        void onLeave(OncePeerRemoteAgent handle);
 
         /**
          *
          * @param handle
          */
-        void execute(OncePeerRemoteClient handle);
+        void execute(OncePeerRemoteAgent handle);
     }
 }

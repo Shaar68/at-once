@@ -1,7 +1,7 @@
 package org._once;
 
-import org._once.actor.OncePeerRemoteClient;
-import org._once.actor.OncePeerRemoteClient.Event;
+import org._once.agent.OncePeerRemoteAgent;
+import org._once.agent.OncePeerRemoteAgent.Event;
 import org._once.protocol.GetEndpointsMessage;
 import org._once.protocol.GetPeersMessage;
 import org._once.protocol.ListEndpointsMessage;
@@ -55,17 +55,17 @@ public class _OncePeer {
 
         context.buildReactor()
             .withInPollable(localZre.getSocket(), new LocalHandler())
-            .withInPollable(remoteZre.getSocket(), new OncePeerRemoteClient(new RemoteHandler()))
+            .withInPollable(remoteZre.getSocket(), new OncePeerRemoteAgent(new RemoteHandler()))
             .start();
     }
 
-    private class RemoteHandler implements OncePeerRemoteClient.Handler {
+    private class RemoteHandler implements OncePeerRemoteAgent.Handler {
         private String peer;
         private String group;
         private OnceCodec.MessageType messageType;
 
         @Override
-        public void onWhisper(OncePeerRemoteClient handle) {
+        public void onWhisper(OncePeerRemoteAgent handle) {
             Message message = handle.getMessage();
             peer = message.popString();
             messageType = codec.deserialize(message);
@@ -74,7 +74,7 @@ public class _OncePeer {
         }
 
         @Override
-        public void onShout(OncePeerRemoteClient handle) {
+        public void onShout(OncePeerRemoteAgent handle) {
             Message message = handle.getMessage();
             peer = message.popString();
             group = message.popString();
@@ -82,7 +82,7 @@ public class _OncePeer {
             onMessage(handle);
         }
 
-        private void onMessage(OncePeerRemoteClient handle) {
+        private void onMessage(OncePeerRemoteAgent handle) {
             switch (messageType) {
                 case CHALLENGE:
                     handle.triggerEvent(Event.CHALLENGE);
@@ -115,25 +115,25 @@ public class _OncePeer {
         }
 
         @Override
-        public void onServerConnect(OncePeerRemoteClient handle) {
+        public void onServerConnect(OncePeerRemoteAgent handle) {
             Message message = handle.getMessage();
             server = message.popString();
         }
 
         @Override
-        public void onChallenge(OncePeerRemoteClient handle) {
+        public void onChallenge(OncePeerRemoteAgent handle) {
             // TODO: Handle challenge
             handle.triggerEvent(Event.OK);
         }
 
         @Override
-        public void onOk(OncePeerRemoteClient handle) {
+        public void onOk(OncePeerRemoteAgent handle) {
             GetEndpointsMessage message = new GetEndpointsMessage();
             remoteZre.whisper(server, codec.serialize(message));
         }
 
         @Override
-        public void onListEndpoints(OncePeerRemoteClient handle) {
+        public void onListEndpoints(OncePeerRemoteAgent handle) {
             OnceCodec.MessageType messageType = codec.deserialize(handle.getMessage());
             assert (messageType == OnceCodec.MessageType.LIST_ENDPOINTS);
 
@@ -147,7 +147,7 @@ public class _OncePeer {
         }
 
         @Override
-        public void onEnter(OncePeerRemoteClient handle) {
+        public void onEnter(OncePeerRemoteAgent handle) {
             Message message = handle.getMessage();
             String peer = message.popString();
             String endpoint = remoteZre.getPeerEndpoint(peer);
@@ -157,7 +157,7 @@ public class _OncePeer {
         }
 
         @Override
-        public void onLeave(OncePeerRemoteClient handle) {
+        public void onLeave(OncePeerRemoteAgent handle) {
             Message message = handle.getMessage();
             String peer = message.popString();
             bridgePeers.remove(peer);
@@ -165,7 +165,7 @@ public class _OncePeer {
         }
 
         @Override
-        public void onGetPeers(OncePeerRemoteClient handle) {
+        public void onGetPeers(OncePeerRemoteAgent handle) {
             List<String> peers = remoteZre.getPeers();
             ListPeersMessage message = new ListPeersMessage();
             for (String peer : peers) {
@@ -176,7 +176,7 @@ public class _OncePeer {
         }
 
         @Override
-        public void onListPeers(OncePeerRemoteClient handle) {
+        public void onListPeers(OncePeerRemoteAgent handle) {
             ListPeersMessage message = codec.getListPeers();
             Map<String, String> peers = message.getPeers();
 
@@ -190,14 +190,14 @@ public class _OncePeer {
         }
 
         @Override
-        public void onRemoteEnter(OncePeerRemoteClient handle) {
+        public void onRemoteEnter(OncePeerRemoteAgent handle) {
             List<RemotePeer> peers = remotePeers.computeIfAbsent(peer, k -> new ArrayList<>());
             RemoteEnterMessage message = codec.getRemoteEnter();
             peers.add(new RemotePeer(message.getPeer(), message.getName()));
         }
 
         @Override
-        public void onRemoteExit(OncePeerRemoteClient handle) {
+        public void onRemoteExit(OncePeerRemoteAgent handle) {
             List<RemotePeer> peers = remotePeers.get(peer);
             if (peers != null) {
                 RemoteExitMessage message = codec.getRemoteExit();
@@ -206,17 +206,17 @@ public class _OncePeer {
         }
 
         @Override
-        public void onRemoteWhisper(OncePeerRemoteClient handle) {
+        public void onRemoteWhisper(OncePeerRemoteAgent handle) {
             // TODO: Implement remote whisper
         }
 
         @Override
-        public void onRemoteShout(OncePeerRemoteClient handle) {
+        public void onRemoteShout(OncePeerRemoteAgent handle) {
             // TODO: Implement remote shout
         }
 
         @Override
-        public void execute(OncePeerRemoteClient handle) {
+        public void execute(OncePeerRemoteAgent handle) {
             // TODO: Needed?
         }
     }

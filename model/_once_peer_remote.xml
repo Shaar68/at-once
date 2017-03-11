@@ -1,4 +1,4 @@
-<class name="_once peer remote client" title="_once peer remote client">
+<class name="_once peer remote" title="_once peer" protocol_class="_once">
     This is a client implementation of the @Once Protocol.
     <include filename="license.xml" />
 
@@ -36,8 +36,16 @@
             <action name="send" message="GET PEERS" />
         </event>
 
+        <event name="JOIN">
+            <action name="on join" />
+        </event>
+
         <event name="LEAVE">
             <action name="on leave" />
+        </event>
+
+        <event name="EXIT">
+            <action name="on exit" />
         </event>
 
         <event name="get peers">
@@ -65,12 +73,12 @@
             <action name="on remote shout" />
         </event>
 
-        <event name="*">
-            <action name="execute" />
-        </event>
-
         <event name="stop">
             <action name="stop" />
+        </event>
+
+        <event name="*">
+            <action name="execute" />
         </event>
     </state>
 
