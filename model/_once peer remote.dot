@@ -1,0 +1,77 @@
+## Automatically generated from _once peer remote.xml by gsl
+digraph "_once peer remote" {
+
+ "start" [shape = "doublecircle"];
+ "start enter" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">enter</font></td></tr><tr><td align="left" port="r3">on server connect</td></tr></table>>];
+ "start" -> "start enter";
+ "start enter" -> "authenticating";
+
+ "authenticating" [shape = "doublecircle"];
+ "authenticating whisper" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">whisper</font></td></tr><tr><td align="left" port="r3">check shared secret</td></tr><tr><td align="left" port="r3">on whisper</td></tr></table>>];
+ "authenticating" -> "authenticating whisper";
+ "authenticating whisper" -> "authenticating";
+ "authenticating shout" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">shout</font></td></tr><tr><td align="left" port="r3">check shared secret</td></tr><tr><td align="left" port="r3">on shout</td></tr></table>>];
+ "authenticating" -> "authenticating shout";
+ "authenticating shout" -> "authenticating";
+ "authenticating challenge" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">challenge</font></td></tr><tr><td align="left" port="r3">on challenge</td></tr><tr><td align="left" port="r3">send</td></tr></table>>];
+ "authenticating" -> "authenticating challenge";
+ "authenticating challenge" -> "authenticating";
+ "authenticating ok" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">ok</font></td></tr><tr><td align="left" port="r3">on ok</td></tr><tr><td align="left" port="r3">send</td></tr></table>>];
+ "authenticating" -> "authenticating ok";
+ "authenticating ok" -> "connecting";
+ "authenticating nope" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">nope</font></td></tr><tr><td align="left" port="r3">stop</td></tr></table>>];
+ "authenticating" -> "authenticating nope";
+ "authenticating nope" -> "authenticating";
+
+ "connecting" [shape = "doublecircle"];
+ "connecting whisper" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">whisper</font></td></tr><tr><td align="left" port="r3">check shared secret</td></tr><tr><td align="left" port="r3">on whisper</td></tr></table>>];
+ "connecting" -> "connecting whisper";
+ "connecting whisper" -> "connecting";
+ "connecting shout" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">shout</font></td></tr><tr><td align="left" port="r3">check shared secret</td></tr><tr><td align="left" port="r3">on shout</td></tr></table>>];
+ "connecting" -> "connecting shout";
+ "connecting shout" -> "connecting";
+ "connecting list endpoints" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">list endpoints</font></td></tr><tr><td align="left" port="r3">on list endpoints</td></tr></table>>];
+ "connecting" -> "connecting list endpoints";
+ "connecting list endpoints" -> "ready";
+
+ "ready" [shape = "doublecircle"];
+ "ready whisper" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">whisper</font></td></tr><tr><td align="left" port="r3">check shared secret</td></tr><tr><td align="left" port="r3">on whisper</td></tr></table>>];
+ "ready" -> "ready whisper";
+ "ready whisper" -> "ready";
+ "ready shout" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">shout</font></td></tr><tr><td align="left" port="r3">check shared secret</td></tr><tr><td align="left" port="r3">on shout</td></tr></table>>];
+ "ready" -> "ready shout";
+ "ready shout" -> "ready";
+ "ready enter" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">enter</font></td></tr><tr><td align="left" port="r3">on enter</td></tr><tr><td align="left" port="r3">send</td></tr></table>>];
+ "ready" -> "ready enter";
+ "ready enter" -> "ready";
+ "ready join" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">join</font></td></tr><tr><td align="left" port="r3">on join</td></tr></table>>];
+ "ready" -> "ready join";
+ "ready join" -> "ready";
+ "ready leave" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">leave</font></td></tr><tr><td align="left" port="r3">on leave</td></tr></table>>];
+ "ready" -> "ready leave";
+ "ready leave" -> "ready";
+ "ready exit" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">exit</font></td></tr><tr><td align="left" port="r3">on exit</td></tr></table>>];
+ "ready" -> "ready exit";
+ "ready exit" -> "ready";
+ "ready get peers" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">get peers</font></td></tr><tr><td align="left" port="r3">on get peers</td></tr><tr><td align="left" port="r3">send</td></tr></table>>];
+ "ready" -> "ready get peers";
+ "ready get peers" -> "ready";
+ "ready list peers" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">list peers</font></td></tr><tr><td align="left" port="r3">on list peers</td></tr></table>>];
+ "ready" -> "ready list peers";
+ "ready list peers" -> "ready";
+ "ready remote enter" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">remote enter</font></td></tr><tr><td align="left" port="r3">on remote enter</td></tr></table>>];
+ "ready" -> "ready remote enter";
+ "ready remote enter" -> "ready";
+ "ready remote exit" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">remote exit</font></td></tr><tr><td align="left" port="r3">on remote exit</td></tr></table>>];
+ "ready" -> "ready remote exit";
+ "ready remote exit" -> "ready";
+ "ready remote whisper" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">remote whisper</font></td></tr><tr><td align="left" port="r3">on remote whisper</td></tr></table>>];
+ "ready" -> "ready remote whisper";
+ "ready remote whisper" -> "ready";
+ "ready remote shout" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">remote shout</font></td></tr><tr><td align="left" port="r3">on remote shout</td></tr></table>>];
+ "ready" -> "ready remote shout";
+ "ready remote shout" -> "ready";
+ "ready stop" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">stop</font></td></tr><tr><td align="left" port="r3">stop</td></tr></table>>];
+ "ready" -> "ready stop";
+ "ready stop" -> "ready";
+}

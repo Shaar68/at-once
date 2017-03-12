@@ -1,0 +1,50 @@
+## Automatically generated from _once server.xml by gsl
+digraph "_once server" {
+
+ "start" [shape = "doublecircle"];
+ "start enter" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">enter</font></td></tr><tr><td align="left" port="r3">on enter</td></tr></table>>];
+ "start" -> "start enter";
+ "start enter" -> "authenticating";
+
+ "authenticating" [shape = "doublecircle"];
+ "authenticating authenticate" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">authenticate</font></td></tr><tr><td align="left" port="r3">on authenticate</td></tr></table>>];
+ "authenticating" -> "authenticating authenticate";
+ "authenticating authenticate" -> "authenticating";
+ "authenticating authenticate ok" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">authenticate ok</font></td></tr><tr><td align="left" port="r3">send</td></tr></table>>];
+ "authenticating" -> "authenticating authenticate ok";
+ "authenticating authenticate ok" -> "ready";
+ "authenticating authenticate failed" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">authenticate failed</font></td></tr><tr><td align="left" port="r3">on authenticate failed</td></tr><tr><td align="left" port="r3">send</td></tr></table>>];
+ "authenticating" -> "authenticating authenticate failed";
+ "authenticating authenticate failed" -> "ready";
+
+ "responding" [shape = "doublecircle"];
+ "responding challenge" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">challenge</font></td></tr><tr><td align="left" port="r3">send</td></tr></table>>];
+ "responding" -> "responding challenge";
+ "responding challenge" -> "ready";
+ "responding get endpoints" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">get endpoints</font></td></tr><tr><td align="left" port="r3">on get endpoints</td></tr><tr><td align="left" port="r3">send</td></tr></table>>];
+ "responding" -> "responding get endpoints";
+ "responding get endpoints" -> "ready";
+ "responding unauthorized" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">unauthorized</font></td></tr><tr><td align="left" port="r3">on unauthorized</td></tr><tr><td align="left" port="r3">send</td></tr></table>>];
+ "responding" -> "responding unauthorized";
+ "responding unauthorized" -> "ready";
+
+ "ready" [shape = "doublecircle"];
+ "ready enter" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">enter</font></td></tr><tr><td align="left" port="r3">on enter</td></tr></table>>];
+ "ready" -> "ready enter";
+ "ready enter" -> "authenticating";
+ "ready join" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">join</font></td></tr><tr><td align="left" port="r3">on join</td></tr></table>>];
+ "ready" -> "ready join";
+ "ready join" -> "ready";
+ "ready whisper" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">whisper</font></td></tr><tr><td align="left" port="r3">on whisper</td></tr><tr><td align="left" port="r3">check authentication token</td></tr></table>>];
+ "ready" -> "ready whisper";
+ "ready whisper" -> "responding";
+ "ready shout" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">shout</font></td></tr><tr><td align="left" port="r3">on shout</td></tr><tr><td align="left" port="r3">check authentication token</td></tr></table>>];
+ "ready" -> "ready shout";
+ "ready shout" -> "responding";
+ "ready leave" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">leave</font></td></tr><tr><td align="left" port="r3">on leave</td></tr></table>>];
+ "ready" -> "ready leave";
+ "ready leave" -> "ready";
+ "ready exit" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">exit</font></td></tr><tr><td align="left" port="r3">on exit</td></tr></table>>];
+ "ready" -> "ready exit";
+ "ready exit" -> "ready";
+}

@@ -66,11 +66,6 @@ public class _OnceServer {
         }
 
         @Override
-        public void checkAuthenticationToken(OnceServerAgent agent) {
-            // TODO: Implement security.
-        }
-
-        @Override
         public void onWhisper(OnceServerAgent agent) {
             Message message = agent.getMessage();
             peer = message.popString();
@@ -107,10 +102,20 @@ public class _OnceServer {
         }
 
         @Override
+        public void checkAuthenticationToken(OnceServerAgent agent) {
+            // TODO: Implement security.
+        }
+
+        @Override
         public void onAuthenticate(OnceServerAgent agent) {
             // TODO: Implement security.
             agent.triggerEvent(OnceServerAgent.Event.AUTHENTICATE_OK);
             zre.whisper(peer, codec.serialize(new OkMessage()));
+        }
+
+        @Override
+        public void onAuthenticateFailed(OnceServerAgent agent) {
+            // TODO: Implement security.
         }
 
         @Override

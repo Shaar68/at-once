@@ -1,0 +1,66 @@
+## Automatically generated from _once client.xml by gsl
+digraph "_once client" {
+
+ "start" [shape = "doublecircle"];
+ "start enter" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">enter</font></td></tr><tr><td align="left" port="r3">on enter</td></tr></table>>];
+ "start" -> "start enter";
+ "start enter" -> "ready";
+
+ "ready" [shape = "doublecircle"];
+ "ready enter" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">enter</font></td></tr><tr><td align="left" port="r3">on enter</td></tr></table>>];
+ "ready" -> "ready enter";
+ "ready enter" -> "ready";
+ "ready join" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">join</font></td></tr><tr><td align="left" port="r3">on join</td></tr></table>>];
+ "ready" -> "ready join";
+ "ready join" -> "ready";
+ "ready whisper" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">whisper</font></td></tr><tr><td align="left" port="r3">on whisper</td></tr></table>>];
+ "ready" -> "ready whisper";
+ "ready whisper" -> "ready";
+ "ready shout" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">shout</font></td></tr><tr><td align="left" port="r3">on shout</td></tr></table>>];
+ "ready" -> "ready shout";
+ "ready shout" -> "ready";
+ "ready leave" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">leave</font></td></tr><tr><td align="left" port="r3">on leave</td></tr></table>>];
+ "ready" -> "ready leave";
+ "ready leave" -> "ready";
+ "ready exit" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">exit</font></td></tr><tr><td align="left" port="r3">on exit</td></tr></table>>];
+ "ready" -> "ready exit";
+ "ready exit" -> "ready";
+ "ready bridge entered" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">bridge entered</font></td></tr></table>>];
+ "ready" -> "ready bridge entered";
+ "ready bridge entered" -> "bridge mode";
+
+ "bridge mode" [shape = "doublecircle"];
+ "bridge mode enter" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">enter</font></td></tr><tr><td align="left" port="r3">on enter</td></tr></table>>];
+ "bridge mode" -> "bridge mode enter";
+ "bridge mode enter" -> "bridge mode";
+ "bridge mode join" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">join</font></td></tr><tr><td align="left" port="r3">on join</td></tr></table>>];
+ "bridge mode" -> "bridge mode join";
+ "bridge mode join" -> "bridge mode";
+ "bridge mode whisper" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">whisper</font></td></tr><tr><td align="left" port="r3">on whisper</td></tr></table>>];
+ "bridge mode" -> "bridge mode whisper";
+ "bridge mode whisper" -> "bridge mode";
+ "bridge mode shout" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">shout</font></td></tr><tr><td align="left" port="r3">on shout</td></tr></table>>];
+ "bridge mode" -> "bridge mode shout";
+ "bridge mode shout" -> "bridge mode";
+ "bridge mode leave" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">leave</font></td></tr><tr><td align="left" port="r3">on leave</td></tr></table>>];
+ "bridge mode" -> "bridge mode leave";
+ "bridge mode leave" -> "bridge mode";
+ "bridge mode exit" [shape = "Mrecord" style = dashed label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">exit</font></td></tr><tr><td align="left" port="r3">on exit</td></tr></table>>];
+ "bridge mode" -> "bridge mode exit";
+ "bridge mode exit" -> "bridge mode";
+ "bridge mode remote enter" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">remote enter</font></td></tr><tr><td align="left" port="r3">on remote enter</td></tr></table>>];
+ "bridge mode" -> "bridge mode remote enter";
+ "bridge mode remote enter" -> "bridge mode";
+ "bridge mode remote whisper" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">remote whisper</font></td></tr><tr><td align="left" port="r3">on remote whisper</td></tr></table>>];
+ "bridge mode" -> "bridge mode remote whisper";
+ "bridge mode remote whisper" -> "bridge mode";
+ "bridge mode remote shout" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">remote shout</font></td></tr><tr><td align="left" port="r3">on remote shout</td></tr></table>>];
+ "bridge mode" -> "bridge mode remote shout";
+ "bridge mode remote shout" -> "bridge mode";
+ "bridge mode remote exit" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">remote exit</font></td></tr><tr><td align="left" port="r3">on remote exit</td></tr></table>>];
+ "bridge mode" -> "bridge mode remote exit";
+ "bridge mode remote exit" -> "bridge mode";
+ "bridge mode bridge left" [shape = "Mrecord" style = solid label = <<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td bgcolor="black" align="center" colspan="2"><font color="white">bridge left</font></td></tr></table>>];
+ "bridge mode" -> "bridge mode bridge left";
+ "bridge mode bridge left" -> "ready";
+}

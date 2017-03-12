@@ -1,8 +1,10 @@
 .template 0
 
 include "library.gsl"
+include "zproto_dot.gsl"
 resolve_includes()
 set_defaults()
+generate_dot()
 
 #   Set globals
 global.ClassName = java_class_name(class.name)

@@ -1,0 +1,60 @@
+<class name="_once client" title="_once client" protocol_class="_once">
+    This is a client implementation of the @Once Protocol.
+    <include filename="license.xml" />
+
+    <state name="start">
+        <event name="ENTER" next="ready">
+            <action name="on enter" />
+        </event>
+    </state>
+
+    <state name="ready" inherit="external">
+        <event name="bridge entered" next="bridge mode" />
+    </state>
+
+    <state name="bridge mode" inherit="external">
+        <event name="remote enter">
+            <action name="on remote enter" />
+        </event>
+
+        <event name="remote whisper">
+            <action name="on remote whisper" />
+        </event>
+
+        <event name="remote shout">
+            <action name="on remote shout" />
+        </event>
+
+        <event name="remote exit">
+            <action name="on remote exit" />
+        </event>
+
+        <event name="bridge left" next="ready" />
+    </state>
+
+    <state name="external">
+        <event name="ENTER">
+            <action name="on enter" />
+        </event>
+
+        <event name="JOIN">
+            <action name="on join" />
+        </event>
+
+        <event name="WHISPER">
+            <action name="on whisper" />
+        </event>
+
+        <event name="SHOUT">
+            <action name="on shout" />
+        </event>
+
+        <event name="LEAVE">
+            <action name="on leave" />
+        </event>
+
+        <event name="EXIT">
+            <action name="on exit" />
+        </event>
+    </state>
+</class>

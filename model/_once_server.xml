@@ -3,13 +3,44 @@
     <include filename="license.xml" />
 
     <state name="start">
-        <event name="ENTER" next="responding" trigger="challenge">
+        <event name="ENTER" next="authenticating" trigger="challenge">
             <action name="on enter" />
         </event>
     </state>
 
+    <state name="authenticating">
+        <event name="authenticate">
+            <action name="on authenticate" />
+        </event>
+
+        <event name="authenticate ok" next="ready">
+            <action name="send" message="OK" />
+        </event>
+
+        <event name="authenticate failed" next="ready">
+            <action name="on authenticate failed" />
+            <action name="send" message="NOPE" />
+        </event>
+    </state>
+
+    <state name="responding">
+        <event name="challenge" next="ready">
+            <action name="send" message="CHALLENGE" />
+        </event>
+
+        <event name="get endpoints" next="ready">
+            <action name="on get endpoints" />
+            <action name="send" message="LIST ENDPOINTS" />
+        </event>
+
+        <event name="unauthorized" next="ready">
+            <action name="on unauthorized" />
+            <action name="send" message="NOPE" />
+        </event>
+    </state>
+
     <state name="ready">
-        <event name="ENTER" next="responding" trigger="challenge">
+        <event name="ENTER" next="authenticating" trigger="challenge">
             <action name="on enter" />
         </event>
 
@@ -18,12 +49,13 @@
         </event>
 
         <event name="WHISPER" next="responding">
-            <action name="check authentication token" />
             <action name="on whisper" />
+            <action name="check authentication token" />
         </event>
 
-        <event name="SHOUT">
+        <event name="SHOUT" next="responding">
             <action name="on shout" />
+            <action name="check authentication token" />
         </event>
 
         <event name="LEAVE">
@@ -34,35 +66,4 @@
             <action name="on exit" />
         </event>
     </state>
-
-    <state name="responding">
-        <event name="challenge" next="ready">
-            <action name="send" message="CHALLENGE" />
-        </event>
-
-        <event name="authenticate" next="authenticating">
-            <action name="on authenticate" />
-        </event>
-
-        <event name="unauthorized" next="ready">
-            <action name="on unauthorized" />
-            <action name="send" message="NOPE" />
-        </event>
-
-        <event name="get endpoints" next="ready">
-            <action name="on get endpoints" />
-            <action name="send" message="LIST ENDPOINTS" />
-        </event>
-    </state>
-
-    <state name="authenticating">
-        <event name="authenticate ok" next="ready">
-            <action name="send" message="OK" />
-        </event>
-
-        <event name="authenticate failed" next="ready">
-            <action name="send" message="NOPE" />
-        </event>
-    </state>
-
 </class>

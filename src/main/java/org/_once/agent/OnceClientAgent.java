@@ -1,7 +1,7 @@
 /* ============================================================================
- * OnceServerAgent.java
+ * OnceClientAgent.java
  *
- * Generated class for OnceServerAgent
+ * Generated class for OnceClientAgent
  * ----------------------------------------------------------------------------
  * Copyright (c) 2017 InSource Software -- http://www.insource.io          
  * Copyright other contributors as noted in the AUTHORS file.              
@@ -22,11 +22,11 @@ import org.zeromq.api.Reactor;
 import org.zeromq.api.Socket;
 
 /**
- * OnceServerAgent class.
+ * OnceClientAgent class.
  *
  * @author sriesenberg
  */
-public class OnceServerAgent extends LoopAdapter {
+public class OnceClientAgent extends LoopAdapter {
     // Application callback handler
     private Handler handler;
 
@@ -38,7 +38,7 @@ public class OnceServerAgent extends LoopAdapter {
     private Event event;
     private Event next;
 
-    public OnceServerAgent(Handler handler) {
+    public OnceClientAgent(Handler handler) {
         this.handler = handler;
     }
 
@@ -90,49 +90,6 @@ public class OnceServerAgent extends LoopAdapter {
                 switch (event) {
                     case ENTER: {
                         handler.onEnter(this);
-                        state = State.AUTHENTICATING;
-                        next = Event.CHALLENGE;
-                        break;
-                    }
-                }
-                break;
-            }
-            case AUTHENTICATING: {
-                switch (event) {
-                    case AUTHENTICATE: {
-                        handler.onAuthenticate(this);
-                        break;
-                    }
-                    case AUTHENTICATE_OK: {
-                        // TODO: send OK
-                        state = State.READY;
-                        break;
-                    }
-                    case AUTHENTICATE_FAILED: {
-                        handler.onAuthenticateFailed(this);
-                        // TODO: send NOPE
-                        state = State.READY;
-                        break;
-                    }
-                }
-                break;
-            }
-            case RESPONDING: {
-                switch (event) {
-                    case CHALLENGE: {
-                        // TODO: send CHALLENGE
-                        state = State.READY;
-                        break;
-                    }
-                    case GET_ENDPOINTS: {
-                        handler.onGetEndpoints(this);
-                        // TODO: send LIST ENDPOINTS
-                        state = State.READY;
-                        break;
-                    }
-                    case UNAUTHORIZED: {
-                        handler.onUnauthorized(this);
-                        // TODO: send NOPE
                         state = State.READY;
                         break;
                     }
@@ -141,10 +98,12 @@ public class OnceServerAgent extends LoopAdapter {
             }
             case READY: {
                 switch (event) {
+                    case BRIDGE_ENTERED: {
+                        state = State.BRIDGE_MODE;
+                        break;
+                    }
                     case ENTER: {
                         handler.onEnter(this);
-                        state = State.AUTHENTICATING;
-                        next = Event.CHALLENGE;
                         break;
                     }
                     case JOIN: {
@@ -153,14 +112,59 @@ public class OnceServerAgent extends LoopAdapter {
                     }
                     case WHISPER: {
                         handler.onWhisper(this);
-                        handler.checkAuthenticationToken(this);
-                        state = State.RESPONDING;
                         break;
                     }
                     case SHOUT: {
                         handler.onShout(this);
-                        handler.checkAuthenticationToken(this);
-                        state = State.RESPONDING;
+                        break;
+                    }
+                    case LEAVE: {
+                        handler.onLeave(this);
+                        break;
+                    }
+                    case EXIT: {
+                        handler.onExit(this);
+                        break;
+                    }
+                }
+                break;
+            }
+            case BRIDGE_MODE: {
+                switch (event) {
+                    case REMOTE_ENTER: {
+                        handler.onRemoteEnter(this);
+                        break;
+                    }
+                    case REMOTE_WHISPER: {
+                        handler.onRemoteWhisper(this);
+                        break;
+                    }
+                    case REMOTE_SHOUT: {
+                        handler.onRemoteShout(this);
+                        break;
+                    }
+                    case REMOTE_EXIT: {
+                        handler.onRemoteExit(this);
+                        break;
+                    }
+                    case BRIDGE_LEFT: {
+                        state = State.READY;
+                        break;
+                    }
+                    case ENTER: {
+                        handler.onEnter(this);
+                        break;
+                    }
+                    case JOIN: {
+                        handler.onJoin(this);
+                        break;
+                    }
+                    case WHISPER: {
+                        handler.onWhisper(this);
+                        break;
+                    }
+                    case SHOUT: {
+                        handler.onShout(this);
                         break;
                     }
                     case LEAVE: {
@@ -182,9 +186,8 @@ public class OnceServerAgent extends LoopAdapter {
      */
     public enum State {
         START,
-        AUTHENTICATING,
-        RESPONDING,
-        READY
+        READY,
+        BRIDGE_MODE
     }
 
     /**
@@ -192,12 +195,12 @@ public class OnceServerAgent extends LoopAdapter {
      */
     public enum Event {
         ENTER,
-        AUTHENTICATE,
-        AUTHENTICATE_OK,
-        AUTHENTICATE_FAILED,
-        CHALLENGE,
-        GET_ENDPOINTS,
-        UNAUTHORIZED,
+        BRIDGE_ENTERED,
+        REMOTE_ENTER,
+        REMOTE_WHISPER,
+        REMOTE_SHOUT,
+        REMOTE_EXIT,
+        BRIDGE_LEFT,
         JOIN,
         WHISPER,
         SHOUT,
@@ -214,76 +217,69 @@ public class OnceServerAgent extends LoopAdapter {
          *
          * @param agent Handle to the agent instance
          */
-        void onEnter(OnceServerAgent agent);
+        void onEnter(OnceClientAgent agent);
 
         /**
-         * Callback for the "on authenticate" action.
+         * Callback for the "on remote enter" action.
          *
          * @param agent Handle to the agent instance
          */
-        void onAuthenticate(OnceServerAgent agent);
+        void onRemoteEnter(OnceClientAgent agent);
 
         /**
-         * Callback for the "on authenticate failed" action.
+         * Callback for the "on remote whisper" action.
          *
          * @param agent Handle to the agent instance
          */
-        void onAuthenticateFailed(OnceServerAgent agent);
+        void onRemoteWhisper(OnceClientAgent agent);
 
         /**
-         * Callback for the "on get endpoints" action.
+         * Callback for the "on remote shout" action.
          *
          * @param agent Handle to the agent instance
          */
-        void onGetEndpoints(OnceServerAgent agent);
+        void onRemoteShout(OnceClientAgent agent);
 
         /**
-         * Callback for the "on unauthorized" action.
+         * Callback for the "on remote exit" action.
          *
          * @param agent Handle to the agent instance
          */
-        void onUnauthorized(OnceServerAgent agent);
+        void onRemoteExit(OnceClientAgent agent);
 
         /**
          * Callback for the "on join" action.
          *
          * @param agent Handle to the agent instance
          */
-        void onJoin(OnceServerAgent agent);
+        void onJoin(OnceClientAgent agent);
 
         /**
          * Callback for the "on whisper" action.
          *
          * @param agent Handle to the agent instance
          */
-        void onWhisper(OnceServerAgent agent);
-
-        /**
-         * Callback for the "check authentication token" action.
-         *
-         * @param agent Handle to the agent instance
-         */
-        void checkAuthenticationToken(OnceServerAgent agent);
+        void onWhisper(OnceClientAgent agent);
 
         /**
          * Callback for the "on shout" action.
          *
          * @param agent Handle to the agent instance
          */
-        void onShout(OnceServerAgent agent);
+        void onShout(OnceClientAgent agent);
 
         /**
          * Callback for the "on leave" action.
          *
          * @param agent Handle to the agent instance
          */
-        void onLeave(OnceServerAgent agent);
+        void onLeave(OnceClientAgent agent);
 
         /**
          * Callback for the "on exit" action.
          *
          * @param agent Handle to the agent instance
          */
-        void onExit(OnceServerAgent agent);
+        void onExit(OnceClientAgent agent);
     }
 }
