@@ -311,7 +311,7 @@ public class $(ClassName)Codec {
                     }
 .            endif
 .        elsif type = "string"
-                    message.$(java_var_name(name)) = needle.getChars();
+                    message.$(java_var_name(name)) = needle.getString();
 .            if defined(field.value)
                     if (!message.$(java_var_name(name)).equals( "$(field.value:)")) {
                         throw new IllegalArgumentException();
@@ -1010,7 +1010,7 @@ public class $(ClassName)SocketTest {
         assertEquals(message.get$(stem_s(java_class_name(name)))("Name", "?"), "Brutus");
         assertEquals(message.get$(stem_s(java_class_name(name)))("Age", 0), 43);
 .        elsif type = "frame"
-        assertTrue(message.get$(java_class_name(name))().getString().equals("Captcha Diem"));
+        assertTrue(message.get$(java_class_name(name))().toString().equals("Captcha Diem"));
 .        elsif type = "msg"
         assertTrue(message.get$(java_class_name(name))().popString().equals("Hello, World"));
 .        endif

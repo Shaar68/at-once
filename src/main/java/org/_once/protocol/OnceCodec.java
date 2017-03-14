@@ -156,7 +156,7 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
-                    message.mechanism = needle.getChars();
+                    message.mechanism = needle.getString();
                     message.response = needle.getBytes();
                     break;
                 }
@@ -166,8 +166,8 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
-                    message.token = needle.getChars();
-                    message.secret = needle.getChars();
+                    message.token = needle.getString();
+                    message.secret = needle.getString();
                     break;
                 }
                 case NOPE: {
@@ -177,7 +177,7 @@ public class OnceCodec {
                         throw new IllegalArgumentException();
                     }
                     message.statusCode = needle.getInt();
-                    message.statusText = needle.getChars();
+                    message.statusText = needle.getString();
                     break;
                 }
                 case GET_ENDPOINTS: {
@@ -186,7 +186,7 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
-                    message.token = needle.getChars();
+                    message.token = needle.getString();
                     break;
                 }
                 case LIST_ENDPOINTS: {
@@ -195,7 +195,7 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
-                    message.token = needle.getChars();
+                    message.token = needle.getString();
                     message.endpoints = needle.getClobs();
                     break;
                 }
@@ -205,7 +205,7 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
-                    message.secret = needle.getChars();
+                    message.secret = needle.getString();
                     break;
                 }
                 case LIST_PEERS: {
@@ -214,7 +214,7 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
-                    message.secret = needle.getChars();
+                    message.secret = needle.getString();
                     message.peers = needle.getMap();
                     break;
                 }
@@ -224,10 +224,10 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
-                    message.secret = needle.getChars();
-                    message.from = needle.getChars();
-                    message.peer = needle.getChars();
-                    message.content = needle.getChars();
+                    message.secret = needle.getString();
+                    message.from = needle.getString();
+                    message.peer = needle.getString();
+                    message.content = needle.getString();
                     break;
                 }
                 case REMOTE_SHOUT: {
@@ -236,10 +236,10 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
-                    message.secret = needle.getChars();
-                    message.from = needle.getChars();
-                    message.group = needle.getChars();
-                    message.content = needle.getChars();
+                    message.secret = needle.getString();
+                    message.from = needle.getString();
+                    message.group = needle.getString();
+                    message.content = needle.getString();
                     break;
                 }
                 case REMOTE_ENTER: {
@@ -248,9 +248,9 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
-                    message.secret = needle.getChars();
-                    message.peer = needle.getChars();
-                    message.name = needle.getChars();
+                    message.secret = needle.getString();
+                    message.peer = needle.getString();
+                    message.name = needle.getString();
                     break;
                 }
                 case REMOTE_EXIT: {
@@ -259,9 +259,9 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
-                    message.secret = needle.getChars();
-                    message.peer = needle.getChars();
-                    message.name = needle.getChars();
+                    message.secret = needle.getString();
+                    message.peer = needle.getString();
+                    message.name = needle.getString();
                     break;
                 }
                 case STOP: {
@@ -270,7 +270,7 @@ public class OnceCodec {
                     if (message.version != 1) {
                         throw new IllegalArgumentException();
                     }
-                    message.token = needle.getChars();
+                    message.token = needle.getString();
                     break;
                 }
                 default:
