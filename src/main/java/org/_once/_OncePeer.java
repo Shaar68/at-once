@@ -100,6 +100,7 @@ public class _OncePeer {
         public void onEnter(OncePeerRemoteAgent agent) {
             Message message = agent.getMessage();
             String peer = message.popString();
+            message.popString();
 
             remoteZre.whisper(peer, codec.serialize(new GetPeersMessage()));
         }
@@ -113,6 +114,7 @@ public class _OncePeer {
         public void onWhisper(OncePeerRemoteAgent agent) {
             Message message = agent.getMessage();
             peer = message.popString();
+            message.popString();
             messageType = codec.deserialize(message);
 
             onMessage(agent);
@@ -122,6 +124,7 @@ public class _OncePeer {
         public void onShout(OncePeerRemoteAgent agent) {
             Message message = agent.getMessage();
             peer = message.popString();
+            message.popString();
             group = message.popString();
             messageType = codec.deserialize(message);
 
@@ -284,7 +287,8 @@ public class _OncePeer {
         @Override
         public void onJoin(OncePeerLocalAgent agent) {
             Message message = agent.getMessage();
-            String peer = message.popString();
+            message.popString();
+            message.popString();
             String group = message.popString();
             if (!remoteZre.getOwnGroups().contains(group)) {
                 remoteZre.join(group);
@@ -295,6 +299,7 @@ public class _OncePeer {
         public void onWhisper(OncePeerLocalAgent agent) {
             Message message = agent.getMessage();
             String peer = message.popString();
+            message.popString();
 
             OnceCodec.MessageType messageType = codec.deserialize(message);
             assert (messageType == OnceCodec.MessageType.REMOTE_WHISPER);
@@ -329,7 +334,8 @@ public class _OncePeer {
         @Override
         public void onLeave(OncePeerLocalAgent agent) {
             Message message = agent.getMessage();
-            String peer = message.popString();
+            message.popString();
+            message.popString();
             String group = message.popString();
             if (localZre.getPeersByGroup(group).isEmpty()) {
                 localZre.leave(group);

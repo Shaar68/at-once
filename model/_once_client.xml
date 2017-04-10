@@ -1,4 +1,4 @@
-<class name="_once client" title="_once client" protocol_class="_once">
+<class name="_once client" title="_once client" package="org/_once/agent" protocol_class="_once">
     This is a client implementation of the @Once Protocol.
     <include filename="license.xml" />
 

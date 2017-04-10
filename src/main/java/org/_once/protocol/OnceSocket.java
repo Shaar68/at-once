@@ -89,8 +89,8 @@ import java.io.Closeable;
  */
 public class OnceSocket extends OnceCodec implements Closeable {
     //  Structure of our class
-    private Socket socket;        //  Internal socket handle
-    private Frame address;        //  Address of peer if any
+    private Socket socket;               //  Internal socket handle
+    private Frame address;               //  Address of peer if any
 
     /**
      * Create a new OnceSocket.

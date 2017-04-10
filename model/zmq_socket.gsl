@@ -9,10 +9,10 @@
 .generate_bnf()
 .set_defaults()
 .global.ClassName = java_class_name(class.name)
-.global.PackageName = java_package_name(switches.package)
-.echo "Generating src/main/java/$(switches.package)/$(ClassName)Socket.java..."
-.directory.create("../src/main/java/$(switches.package)")
-.output "../src/main/java/$(switches.package)/$(ClassName)Socket.java"
+.global.PackageName = java_package_name(class.package)
+.echo "Generating src/main/java/$(class.package)/$(ClassName)Socket.java..."
+.directory.create("../src/main/java/$(class.package)")
+.output "../src/main/java/$(class.package)/$(ClassName)Socket.java"
 /* ============================================================================
  * $(ClassName)Socket.java
  * 
@@ -25,11 +25,11 @@ package $(PackageName);
 
 import java.util.*;
 import java.io.Closeable;
-import java.nio.ByteBuffer;
 
-import org.zeromq.api.*;
+import org.zeromq.api.Message;
 import org.zeromq.api.Message.Frame;
 import org.zeromq.api.Message.FrameBuilder;
+import org.zeromq.api.Socket;
 import org.zeromq.ZMQ;
 
 /**
@@ -77,8 +77,8 @@ import org.zeromq.ZMQ;
  */
 public class $(ClassName)Socket extends $(ClassName)Codec implements Closeable {
     //  Structure of our class
-    private Socket socket;        //  Internal socket handle
-    private Frame address;        //  Address of peer if any
+    private Socket socket;               //  Internal socket handle
+    private Frame address;               //  Address of peer if any
 
     /**
      * Create a new $(ClassName)Socket.
@@ -171,9 +171,9 @@ public class $(ClassName)Socket extends $(ClassName)Codec implements Closeable {
 .endfor
 }
 
-.echo "Generating src/main/java/$(switches.package)/$(ClassName)Codec.java..."
-.directory.create("../src/main/java/$(switches.package)")
-.output "../src/main/java/$(switches.package)/$(ClassName)Codec.java"
+.echo "Generating src/main/java/$(class.package)/$(ClassName)Codec.java..."
+.directory.create("../src/main/java/$(class.package)")
+.output "../src/main/java/$(class.package)/$(ClassName)Codec.java"
 /* ============================================================================
  * $(ClassName)Codec.java
  *
@@ -185,13 +185,10 @@ public class $(ClassName)Socket extends $(ClassName)Codec implements Closeable {
 package $(PackageName);
 
 import java.util.*;
-import java.io.Closeable;
-import java.nio.ByteBuffer;
 
-import org.zeromq.api.*;
+import org.zeromq.api.Message;
 import org.zeromq.api.Message.Frame;
 import org.zeromq.api.Message.FrameBuilder;
-import org.zeromq.ZMQ;
 
 /**
  * $(ClassName)Codec class.
@@ -274,7 +271,7 @@ public class $(ClassName)Codec {
             //  Get and check protocol signature
             int signature = (0xffff) & needle.getShort();
             if (signature != (0xaaa0 | $(class.signature))) {
-                return null;         //  Invalid signature
+                return null;             //  Invalid signature
             }
 
             //  Get message id, which is first byte in frame
@@ -413,20 +410,20 @@ public class $(ClassName)Codec {
         if (message.$(java_var_name(name)) != null) {
             builder.putString(message.$(java_var_name(name)));
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
 .            endif
 .        elsif type = "strings"
         if (message.$(java_var_name(name)) != null) {
             builder.putClobs(message.$(java_var_name(name)));
         } else {
-            builder.putInt(0);   //  Empty string array
+            builder.putInt(0);           //  Empty string array
         }
 .        elsif type = "hash"
         if (message.$(java_var_name(name)) != null) {
             builder.putMap(message.$(java_var_name(name)));
         } else {
-            builder.putInt(0);   //  Empty hash
+            builder.putInt(0);           //  Empty hash
         }
 .        endif
 .    endfor
@@ -455,9 +452,9 @@ public class $(ClassName)Codec {
 
 .for message
 .global.MessageName = java_class_name(message.name)
-.echo "Generating src/main/java/$(switches.package)/$(MessageName)Message.java..."
-.directory.create("../src/main/java/$(switches.package)")
-.output "../src/main/java/$(switches.package)/$(MessageName)Message.java"
+.echo "Generating src/main/java/$(class.package)/$(MessageName)Message.java..."
+.directory.create("../src/main/java/$(class.package)")
+.output "../src/main/java/$(class.package)/$(MessageName)Message.java"
 /* ============================================================================
  * $(MessageName)Message.java
  * 
@@ -915,9 +912,9 @@ public class $(MessageName)Message {
 }
 .endfor
 
-.echo "Generating src/test/java/$(switches.package)/Test$(ClassName).java..."
-.directory.create("../src/test/java/$(switches.package)")
-.output "../src/test/java/$(switches.package)/$(ClassName)SocketTest.java"
+.echo "Generating src/test/java/$(class.package)/$(ClassName)SocketTest.java..."
+.directory.create("../src/test/java/$(class.package)")
+.output "../src/test/java/$(class.package)/$(ClassName)SocketTest.java"
 package $(PackageName);
 
 import static org.junit.Assert.*;
@@ -977,9 +974,9 @@ public class $(ClassName)SocketTest {
         message.put$(stem_s(java_class_name(name)))("Name", "Brutus");
         message.put$(stem_s(java_class_name(name)))("Age", 43);
 .        elsif type = "frame"
-        message.set$(java_class_name(name))(new Frame("Captcha Diem"));
+        message.set$(java_class_name(name))(Frame.of("Captcha Diem"));
 .        elsif type = "msg"
-        message.set$(java_class_name(name))(new new Message("Hello, World"));
+        message.set$(java_class_name(name))(new Message("Hello, World"));
 .        endif
 .    endfor
         

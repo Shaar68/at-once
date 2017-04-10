@@ -69,6 +69,7 @@ public class _OnceServer {
         public void onWhisper(OnceServerAgent agent) {
             Message message = agent.getMessage();
             peer = message.popString();
+            message.popString();
 
             OnceCodec.MessageType messageType = codec.deserialize(message);
             switch (messageType) {

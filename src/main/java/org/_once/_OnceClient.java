@@ -20,7 +20,7 @@ public class _OnceClient extends ZreInterface {
     }
 
     @Override
-    public Message receive() {
-        return super.receive();
+    public Message receiveMessage() {
+        return super.receiveMessage();
     }
 }

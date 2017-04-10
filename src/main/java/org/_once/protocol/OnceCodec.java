@@ -133,7 +133,7 @@ public class OnceCodec {
             //  Get and check protocol signature
             int signature = (0xffff) & needle.getShort();
             if (signature != (0xaaa0 | 2)) {
-                return null;         //  Invalid signature
+                return null;             //  Invalid signature
             }
 
             //  Get message id, which is first byte in frame
@@ -419,7 +419,7 @@ public class OnceCodec {
         if (message.mechanisms != null) {
             builder.putClobs(message.mechanisms);
         } else {
-            builder.putInt(0);   //  Empty string array
+            builder.putInt(0);           //  Empty string array
         }
         builder.putBytes(message.challenge);
 
@@ -448,7 +448,7 @@ public class OnceCodec {
         if (message.mechanism != null) {
             builder.putString(message.mechanism);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
         builder.putBytes(message.response);
 
@@ -477,12 +477,12 @@ public class OnceCodec {
         if (message.token != null) {
             builder.putString(message.token);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
         if (message.secret != null) {
             builder.putString(message.secret);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
 
         //  Create multi-frame message
@@ -511,7 +511,7 @@ public class OnceCodec {
         if (message.statusText != null) {
             builder.putString(message.statusText);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
 
         //  Create multi-frame message
@@ -539,7 +539,7 @@ public class OnceCodec {
         if (message.token != null) {
             builder.putString(message.token);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
 
         //  Create multi-frame message
@@ -567,12 +567,12 @@ public class OnceCodec {
         if (message.token != null) {
             builder.putString(message.token);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
         if (message.endpoints != null) {
             builder.putClobs(message.endpoints);
         } else {
-            builder.putInt(0);   //  Empty string array
+            builder.putInt(0);           //  Empty string array
         }
 
         //  Create multi-frame message
@@ -600,7 +600,7 @@ public class OnceCodec {
         if (message.secret != null) {
             builder.putString(message.secret);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
 
         //  Create multi-frame message
@@ -628,12 +628,12 @@ public class OnceCodec {
         if (message.secret != null) {
             builder.putString(message.secret);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
         if (message.peers != null) {
             builder.putMap(message.peers);
         } else {
-            builder.putInt(0);   //  Empty hash
+            builder.putInt(0);           //  Empty hash
         }
 
         //  Create multi-frame message
@@ -661,22 +661,22 @@ public class OnceCodec {
         if (message.secret != null) {
             builder.putString(message.secret);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
         if (message.from != null) {
             builder.putString(message.from);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
         if (message.peer != null) {
             builder.putString(message.peer);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
         if (message.content != null) {
             builder.putString(message.content);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
 
         //  Create multi-frame message
@@ -704,22 +704,22 @@ public class OnceCodec {
         if (message.secret != null) {
             builder.putString(message.secret);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
         if (message.from != null) {
             builder.putString(message.from);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
         if (message.group != null) {
             builder.putString(message.group);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
         if (message.content != null) {
             builder.putString(message.content);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
 
         //  Create multi-frame message
@@ -747,17 +747,17 @@ public class OnceCodec {
         if (message.secret != null) {
             builder.putString(message.secret);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
         if (message.peer != null) {
             builder.putString(message.peer);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
         if (message.name != null) {
             builder.putString(message.name);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
 
         //  Create multi-frame message
@@ -785,17 +785,17 @@ public class OnceCodec {
         if (message.secret != null) {
             builder.putString(message.secret);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
         if (message.peer != null) {
             builder.putString(message.peer);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
         if (message.name != null) {
             builder.putString(message.name);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
 
         //  Create multi-frame message
@@ -823,7 +823,7 @@ public class OnceCodec {
         if (message.token != null) {
             builder.putString(message.token);
         } else {
-            builder.putString("");        //  Empty string
+            builder.putString("");       //  Empty string
         }
 
         //  Create multi-frame message

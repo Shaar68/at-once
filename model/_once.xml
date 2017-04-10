@@ -1,4 +1,4 @@
-<class name="_once" signature="2" title="Socket for working with @Once messages.">
+<class name="_once" signature="2" title="Socket for working with @Once messages." package="org/_once/protocol">
     This is the @Once Protocol, version 1 draft.
 
     <include filename="license.xml" />
